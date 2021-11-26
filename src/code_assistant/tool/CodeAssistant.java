@@ -26,7 +26,7 @@
 package code_assistant.tool;
 
 import processing.app.Base;
-import processing.app.tools.Tool;
+import processing.app.tools.Tool; 
 
 public class CodeAssistant implements Tool {
 	private Base base;
