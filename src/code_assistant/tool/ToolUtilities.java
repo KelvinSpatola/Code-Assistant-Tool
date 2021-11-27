@@ -1,6 +1,5 @@
 package code_assistant.tool;
 
-import codeassistant.tool.ToolConstants;
 import processing.app.ui.Editor;
 
 public final class ToolUtilities implements ToolConstants {
