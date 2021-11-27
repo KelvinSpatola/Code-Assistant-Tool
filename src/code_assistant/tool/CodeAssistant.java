@@ -40,6 +40,14 @@ public class CodeAssistant implements Tool {
 	}
 
 	public void run() {
-		System.out.println("##tool.name## ##tool.prettyVersion## by ##author##");
+		base.getActiveEditor().getTextArea().setInputHandler(new ToolInputHandler(base.getActiveEditor()));
+		// System.out.println(base.getActiveEditor().getTextArea().getInputHandler());
+
+		// new ToolInputHandler(base.getActiveEditor());
+
+		System.out.println(" ##tool.name## v. ##tool.prettyVersion## by ##author##.");
+
+		// editor.statusNotice("Kelvin Clark ");
+		// Messages.showWarning("PDE++ Tool", "Kelvin Clark Magalhaes Spatola");
 	}
 }

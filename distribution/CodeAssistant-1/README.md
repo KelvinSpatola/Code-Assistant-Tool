@@ -36,4 +36,4 @@ Some folders like `examples` or `src` might be missing. After tool Code Assistan
 
 ### Troubleshooting
 
-If you're having trouble, try contacting the author [Kelvin Sp·tola](https://github.com/KelvinSpatola).
+If you're having trouble, try contacting the author [Kelvin Sp√°tola](https://github.com/KelvinSpatola).

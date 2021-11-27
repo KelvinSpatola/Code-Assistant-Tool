@@ -73,7 +73,7 @@ public class ToolTextArea implements RegistrableActions, ToolConstants {
 	 */
 
 	/*
-	 * TODO: corrigir bug quando se duplica uma linha e o caret está na posição zero
+	 * TODO: corrigir bug quando se duplica uma linha e o caret esta na posicao zero
 	 * da linha!!!
 	 */
 	private static void duplicateLines(boolean up) {

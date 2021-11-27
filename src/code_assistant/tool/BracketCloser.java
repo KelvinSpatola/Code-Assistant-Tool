@@ -14,8 +14,8 @@ public class BracketCloser implements RegistrableActions {
 	static char lastChar;
 
 	// define which characters should get closed
-	static char[] openingChar = { '(', '[', '{', '"', '\'', '<', '«' };
-	static char[] closingChar = { ')', ']', '}', '"', '\'', '>', '»' };
+	static char[] openingChar = { '(', '[', '{', '"', '\'', '<' };
+	static char[] closingChar = { ')', ']', '}', '"', '\'', '>' };
 
 	public static void init(Editor _editor) {
 		editor = _editor;
@@ -67,7 +67,7 @@ public class BracketCloser implements RegistrableActions {
 	}
 
 	// prevents something like ()) when typing too fast
-	// TODO: corrigir bug quando este método é chamado para apagar um 'closing char'
+	// TODO: corrigir bug quando este metodo e chamado para apagar um 'closing char'
 	// e acaba movendo o scroll do editor.
 
 	public static void removeClosingChar(int positionOfChar) {
