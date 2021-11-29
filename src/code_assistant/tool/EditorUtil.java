@@ -2,28 +2,28 @@ package code_assistant.tool;
 
 import processing.app.ui.Editor;
 
-public final class ToolUtilities implements ToolConstants {
+public final class EditorUtil implements ToolConstants {
 	static Editor editor;
 
-	private ToolUtilities() {
+	private EditorUtil() {
 	}
 
-	public static void init(Editor _editor) {
+	static public void init(Editor _editor) {
 		editor = _editor;
 	}
 
-	public static int getLineIndentation(int line) {
+	static public int getLineIndentation(int line) {
 		int start = editor.getLineStartOffset(line);
 		int end = editor.getTextArea().getLineStartNonWhiteSpaceOffset(line);
 		return end - start;
 	}
 
-	public static int getLineIndentationOfOffset(int offset) {
+	static public int getLineIndentationOfOffset(int offset) {
 		int line = editor.getTextArea().getLineOfOffset(offset);
 		return getLineIndentation(line);
 	};
 
-	public static int getSelectionIndentation(int startLine, int endLine) {
+	static public int getSelectionIndentation(int startLine, int endLine) {
 		int result = getLineIndentation(startLine);
 
 		for (int line = startLine + 1; line <= endLine; line++) {
@@ -34,7 +34,7 @@ public final class ToolUtilities implements ToolConstants {
 		return result;
 	}
 
-	public static String indentText(String text) {
+	static public String indentText(String text) {
 		String[] lines = text.split(NL);
 		StringBuffer sb = new StringBuffer();
 
@@ -48,7 +48,7 @@ public final class ToolUtilities implements ToolConstants {
 		return sb.toString();
 	}
 
-	public static String outdentText(String text) {
+	static public String outdentText(String text) {
 		String[] lines = text.split(NL);
 		StringBuffer sb = new StringBuffer();
 
@@ -62,13 +62,13 @@ public final class ToolUtilities implements ToolConstants {
 		return sb.toString();
 	}
 
-	public static String addSpaces(int length) {
+	static public String addSpaces(int length) {
 		if (length == 0)
 			return "";
 		return String.format("%1$" + length + "s", "");
 	}
 
-	public static int caretPositionInsideLine() {
+	static public int caretPositionInsideLine() {
 		int caretOffset = editor.getCaretOffset();
 		int lineStartOffset = editor.getLineStartOffset(editor.getTextArea().getCaretLine());
 
@@ -114,4 +114,43 @@ public final class ToolUtilities implements ToolConstants {
 		// return calcSpaceCount(index, contents);
 		return getLineIndentationOfOffset(index);
 	}
+
+	/**
+	 * Returns the previous non-white character
+	 * 
+	 * @return the previous non-white character
+	 */
+	static public char prevChar(int index) {		
+		char[] code = editor.getText().toCharArray();
+		
+		while (index >= 0) {    
+			if(!Character.isWhitespace(code[index])) {
+				return code[index];
+			}
+			index--;
+		}
+		return Character.UNASSIGNED;
+	}
+	
+	static public char prevChar() {		
+		return prevChar(editor.getCaretOffset() - 1);
+	}
+
+	/**
+	 * Returns the next non-white character
+	 * 
+	 * @return the next non-white character
+	 */
+//	static public char nextChar() {		
+//		char[] code = editor.getText().toCharArray();
+//		int index = editor.getCaretOffset() + 1;
+//		
+//		while (index < code.length) {    
+//			if(!Character.isWhitespace(code[index])) {
+//				return code[index];
+//			}
+//			index++;
+//		}
+//		return Character.UNASSIGNED;
+//	}
 }

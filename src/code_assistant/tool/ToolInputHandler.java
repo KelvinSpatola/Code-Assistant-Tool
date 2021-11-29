@@ -41,7 +41,7 @@ public class ToolInputHandler extends PdeInputHandler implements ToolConstants {
 		addAction(ToolEditor.getAction("select-block"), "control alt RIGHT");
 		addAction(ToolEditor.getAction("format-selected-text"), "control T");
 
-		// BracketCloser.init(editor);
+		BracketCloser.init(editor);
 		// registerAction(BracketCloser.getAction("insert-closing-brace"), "ENTER");
 
 //		for (KeyStroke ks : editor.getTextArea().getInputMap().allKeys()) {
@@ -132,18 +132,23 @@ public class ToolInputHandler extends PdeInputHandler implements ToolConstants {
 					return false; // brace with no start
 				int lineStartIndex = index;
 
-				int pairedSpaceCount = ToolUtilities.calcBraceIndent(prevCharIndex, contents); // , 1);
+				int pairedSpaceCount = EditorUtil.calcBraceIndent(prevCharIndex, contents); // , 1);
 				if (pairedSpaceCount == -1)
 					return false;
 
 				editor.getTextArea().setSelectionStart(lineStartIndex);
-				editor.setSelectedText(ToolUtilities.addSpaces(pairedSpaceCount));
+				editor.setSelectedText(EditorUtil.addSpaces(pairedSpaceCount));
 
 				// mark this event as already handled
 				e.consume();
 				return true;
 			}
 		}
+		char[] code = editor.getText().toCharArray();
+		char currChar = code[editor.getCaretOffset()];
+		System.out.println("curr char: '"  + currChar 
+				+ "' | prev char: '" + EditorUtil.prevChar() + "'");
+
 		return false;
 	}
 
@@ -184,7 +189,7 @@ public class ToolInputHandler extends PdeInputHandler implements ToolConstants {
 
 			// calculate the amount of indent on the previous line
 			// this will be used *only if the prev line is not an indent*
-			int spaceCount = ToolUtilities.getLineIndentationOfOffset(caretPos - 1);
+			int spaceCount = EditorUtil.getLineIndentationOfOffset(caretPos - 1);
 
 			// Let's check if the last character is an open brace, then indent.
 			int index = caretPos - 1;
@@ -196,7 +201,7 @@ public class ToolInputHandler extends PdeInputHandler implements ToolConstants {
 				if (code[index] == '{') {
 					// intermediate lines be damned,
 					// use the indent for this line instead
-					spaceCount = ToolUtilities.getLineIndentationOfOffset(index);
+					spaceCount = EditorUtil.getLineIndentationOfOffset(index);
 					spaceCount += TAB_SIZE;
 				}
 			}
@@ -228,7 +233,7 @@ public class ToolInputHandler extends PdeInputHandler implements ToolConstants {
 				editor.setSelectedText(NL);
 				editor.getTextArea().setCaretPosition(editor.getCaretOffset() + extraSpaceCount + spaceCount);
 			} else {
-				String insertion = NL + ToolUtilities.addSpaces(spaceCount);
+				String insertion = NL + EditorUtil.addSpaces(spaceCount);
 				editor.setSelectedText(insertion);
 				editor.getTextArea().setCaretPosition(editor.getCaretOffset() + extraSpaceCount);
 			}
@@ -275,7 +280,7 @@ public class ToolInputHandler extends PdeInputHandler implements ToolConstants {
 			}
 		}
 
-		// BracketCloser.update(e.getKeyChar());
+		BracketCloser.update(e.getKeyChar());
 		handleInputMethodCommit();
 		e.consume();
 

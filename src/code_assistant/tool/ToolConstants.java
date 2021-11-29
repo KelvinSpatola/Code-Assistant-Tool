@@ -16,7 +16,7 @@ public interface ToolConstants {
 //	String ALT_GRAPH = "control alt altGraph BRACELEFT";
 
 	int TAB_SIZE = Preferences.getInteger("editor.tabs.size");
-	String TAB = ToolUtilities.addSpaces(TAB_SIZE);
+	String TAB = EditorUtil.addSpaces(TAB_SIZE);
 	String NL = "\n";
 
 	String COMMENT_TEXT = "^(?!.*\\\".*\\/\\*.*\\\")(?:.*\\/\\*.*|\\h*\\*.*)";

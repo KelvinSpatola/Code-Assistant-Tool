@@ -13,7 +13,7 @@ public class ToolEditor implements RegistrableActions, ToolConstants {
 
 	public static void init(Editor _editor) {
 		editor = _editor;
-		ToolUtilities.init(editor);
+		EditorUtil.init(editor);
 
 		actions.put("handle-enter", HANDLE_ENTER);
 		actions.put("select-block", SELECT_BLOCK);
@@ -71,7 +71,7 @@ public class ToolEditor implements RegistrableActions, ToolConstants {
 			int commentStart = lineText.indexOf("/*");
 			int commentStop = (lineText.contains("*/") ? lineText.indexOf("*/") : lineText.length()) + 2;
 
-			int caretPos = ToolUtilities.caretPositionInsideLine();
+			int caretPos = EditorUtil.caretPositionInsideLine();
 			boolean isString = matches_a_string && (caretPos > stringStart && caretPos < stringStop);
 			boolean isComment = matches_a_comment && (caretPos > commentStart && caretPos < commentStop);
 
@@ -176,20 +176,20 @@ public class ToolEditor implements RegistrableActions, ToolConstants {
 	}
 
 	private static void splitString(int caretLine) {
-		int indent = ToolUtilities.getLineIndentation(caretLine);
+		int indent = EditorUtil.getLineIndentation(caretLine);
 		if (!editor.getLineText(caretLine).matches(SPLIT_STRING_TEXT))
 			indent += TAB_SIZE;
 
 		editor.stopCompoundEdit();
-		editor.insertText("\"\n" + ToolUtilities.addSpaces(indent) + "+ \"");
+		editor.insertText("\"\n" + EditorUtil.addSpaces(indent) + "+ \"");
 		editor.stopCompoundEdit();
 	}
 
 	private static void splitComment(int caretLine) {
-		int indent = ToolUtilities.getLineIndentation(caretLine);
+		int indent = EditorUtil.getLineIndentation(caretLine);
 
 		editor.startCompoundEdit();
-		editor.insertText(NL + ToolUtilities.addSpaces(indent - (indent % TAB_SIZE)) + " * ");
+		editor.insertText(NL + EditorUtil.addSpaces(indent - (indent % TAB_SIZE)) + " * ");
 
 		int caretPos = editor.getCaretOffset();
 		String nextText = editor.getText().substring(caretPos); // .replace('\n', ' ');
@@ -203,23 +203,23 @@ public class ToolEditor implements RegistrableActions, ToolConstants {
 
 		if (commentIsOpen) {
 			editor.getTextArea().setCaretPosition(editor.getLineStopOffset(++caretLine) - 1);
-			editor.insertText(NL + ToolUtilities.addSpaces(indent - (indent % TAB_SIZE)) + " */");
+			editor.insertText(NL + EditorUtil.addSpaces(indent - (indent % TAB_SIZE)) + " */");
 			editor.getTextArea().setCaretPosition(caretPos);
 		}
 		editor.stopCompoundEdit();
 	}
 
 	private static void insertNewLineBellowCurrentLine(int caretLine) {
-		int indent = ToolUtilities.getLineIndentation(caretLine);
+		int indent = EditorUtil.getLineIndentation(caretLine);
 		String lineText = editor.getLineText(caretLine);
 
-		if (lineText.contains("{") && (ToolUtilities.caretPositionInsideLine() > lineText.indexOf("{")))
+		if (lineText.contains("{") && (EditorUtil.caretPositionInsideLine() > lineText.indexOf("{")))
 			indent += TAB_SIZE;
 
 		int caretPos = editor.getCaretOffset();
 
 		editor.startCompoundEdit();
-		editor.insertText(NL + (indent > 0 ? ToolUtilities.addSpaces(indent) : ""));
+		editor.insertText(NL + (indent > 0 ? EditorUtil.addSpaces(indent) : ""));
 		editor.getTextArea().setCaretPosition(caretPos);
 		editor.stopCompoundEdit();
 	}
