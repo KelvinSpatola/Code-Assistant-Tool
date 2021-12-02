@@ -1,10 +1,5 @@
 package code_assistant.tool;
 
-import java.awt.event.ActionEvent;
-import java.util.Map;
-
-import javax.swing.AbstractAction;
-
 import processing.app.ui.Editor;
 
 public class BracketCloser implements RegistrableActions {
@@ -19,20 +14,7 @@ public class BracketCloser implements RegistrableActions {
 
 	public static void init(Editor _editor) {
 		editor = _editor;
-
-		actions.put("insert-closing-brace", HANDLE_ENTER);
 	}
-
-	public static Map.Entry<String, AbstractAction> getAction(String actionName) {
-		return RegistrableActions.getAction(actionName);
-	}
-
-	public static final AbstractAction HANDLE_ENTER = new AbstractAction() {
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			editor.insertText(Character.toString('}'));
-		}
-	};
 
 	public static void update(char key) {
 		// loop through array of opening brackets to trigger completion
@@ -40,14 +22,13 @@ public class BracketCloser implements RegistrableActions {
 			// if nothing is selected just add closing bracket, else wrap brackets around
 			// selection
 			if (!editor.isSelectionActive()) {
-				if (key == closingChar[i] && lastChar == openingChar[i])
-					removeClosingChar(i);
-				else if (key == openingChar[i])
+				if (key == openingChar[i])
 					addClosingChar(i);
+				else if (key == closingChar[i] && lastChar == openingChar[i])
+					removeClosingChar(i);
 			} else if (key == openingChar[i] && editor.isSelectionActive())
 				addClosingChar(i, editor.getSelectionStart(), editor.getSelectionStop());
 		}
-		System.out.println(lastChar);
 	}
 
 	// add closing bracket and set caret inside brackets

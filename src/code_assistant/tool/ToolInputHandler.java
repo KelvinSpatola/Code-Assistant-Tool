@@ -20,43 +20,38 @@ public class ToolInputHandler extends PdeInputHandler implements ToolConstants {
 		super(editor);
 
 		ToolTextArea.init(editor);
-		addKeyBinding("C+E", ToolTextArea.getAction("delete-line").getValue());
-//		addKeyBinding("CS+E", ToolTextArea.getAction("delete-line-content").getValue());
-		addKeyBinding("AS+UP", ToolTextArea.getAction("duplicate-lines-up").getValue());
-		addKeyBinding("AS+DOWN", ToolTextArea.getAction("duplicate-lines-down").getValue());
-		addKeyBinding("A+UP", ToolTextArea.getAction("move-lines-up").getValue());
-		addKeyBinding("A+DOWN", ToolTextArea.getAction("move-lines-down").getValue());
+		addKeyBinding("C+E", ToolTextArea.DELETE_LINE);
+		addKeyBinding("AS+UP", ToolTextArea.DUPLICATE_UP);
+		addKeyBinding("AS+DOWN", ToolTextArea.DUPLICATE_DOWN);
+		addKeyBinding("A+UP", ToolTextArea.MOVE_UP);
+		addKeyBinding("A+DOWN", ToolTextArea.MOVE_DOWN);
+		addKeyBinding("CS+E", "delete-line-content", ToolTextArea.DELETE_LINE_CONTENT);
 
 //		addAction(ToolTextArea.getAction("delete-line"), "control E");
-		addAction(ToolTextArea.getAction("delete-line-content"), "control shift E");
+//		addAction(ToolTextArea.getAction("delete-line-content"), "control shift E");
 //		addAction(ToolTextArea.getAction("duplicate-lines-up"), "alt shift UP");
 //		addAction(ToolTextArea.getAction("duplicate-lines-down"), "alt shift DOWN");
 //		addAction(ToolTextArea.getAction("move-lines-up"), "alt UP");
 //		addAction(ToolTextArea.getAction("move-lines-down"), "alt DOWN");
 
 		ToolEditor.init(editor);
-		addKeyBinding("ENTER", ToolEditor.getAction("handle-enter").getValue());
-		addKeyBinding("A+ENTER", ToolEditor.getAction("insert-new-line-bellow-current-line").getValue());
-		addKeyBinding("CA+RIGHT", ToolEditor.getAction("select-block").getValue());
-//		addKeyBinding("C+T", ToolEditor.getAction("format-selected-text").getValue());
+		addKeyBinding("ENTER", ToolEditor.HANDLE_ENTER);
+		addKeyBinding("A+ENTER", ToolEditor.INSERT_NEW_LINE_BELLOW_CURRENT_LINE);
+		addKeyBinding("CA+RIGHT", ToolEditor.SELECT_BLOCK);
+		addKeyBinding("C+T", "format-selected-text", ToolEditor.FORMAT_SELECTED_TEXT);
 
 //		addAction(ToolEditor.getAction("handle-enter"), "ENTER");
 //		addAction(ToolEditor.getAction("insert-new-line-bellow-current-line"), "alt ENTER");
 //		addAction(ToolEditor.getAction("select-block"), "control alt RIGHT");
-		addAction(ToolEditor.getAction("format-selected-text"), "control T");
+//		addAction(ToolEditor.getAction("format-selected-text"), "control T");
 
 		BracketCloser.init(editor);
-
-//		for (KeyStroke ks : editor.getTextArea().getInputMap().allKeys()) {
-//			System.out.println(ks + " " + editor.getTextArea().getInputMap().get(ks));
-//		}
-
 	}
-
-	private void addAction(Map.Entry<String, AbstractAction> actionEntry, String keyStroke) {
-		KeyStroke ks = KeyStroke.getKeyStroke(keyStroke);
-		editor.getTextArea().getInputMap().put(ks, actionEntry.getKey());
-		editor.getTextArea().getActionMap().put(actionEntry.getKey(), actionEntry.getValue());
+	
+	public void addKeyBinding(String keyBinding, String actionName, AbstractAction action) {
+		KeyStroke ks = parseKeyStroke(keyBinding);
+		editor.getTextArea().getInputMap().put(ks, actionName);
+		editor.getTextArea().getActionMap().put(actionName, action);
 	}
 
 	@Override

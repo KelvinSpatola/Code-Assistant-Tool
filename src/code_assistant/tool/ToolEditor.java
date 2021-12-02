@@ -1,7 +1,6 @@
 package code_assistant.tool;
 
 import java.awt.event.ActionEvent;
-import java.util.Map;
 
 import javax.swing.AbstractAction;
 
@@ -9,21 +8,12 @@ import processing.app.Language;
 import processing.app.Preferences;
 import processing.app.ui.Editor;
 
-public class ToolEditor implements RegistrableActions, ToolConstants {
+public class ToolEditor implements ToolConstants {
 	private static Editor editor;
 
 	public static void init(Editor _editor) {
 		editor = _editor;
 		EditorUtil.init(editor);
-
-		actions.put("handle-enter", HANDLE_ENTER);
-		actions.put("insert-new-line-bellow-current-line", INSERT_NEW_LINE_BELLOW_CURRENT_LINE);
-		actions.put("select-block", SELECT_BLOCK);
-		actions.put("format-selected-text", FORMAT_SELECTED_TEXT);
-	}
-
-	public static Map.Entry<String, AbstractAction> getAction(String actionName) {
-		return RegistrableActions.getAction(actionName);
 	}
 
 	public static final AbstractAction FORMAT_SELECTED_TEXT = new AbstractAction() {

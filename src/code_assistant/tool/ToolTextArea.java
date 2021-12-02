@@ -1,28 +1,16 @@
 package code_assistant.tool;
 
 import java.awt.event.ActionEvent;
-import java.util.Map;
 
 import javax.swing.AbstractAction;
 
 import processing.app.ui.Editor;
 
-public class ToolTextArea implements RegistrableActions, ToolConstants {
+public class ToolTextArea implements ToolConstants {
 	private static Editor editor;
 
 	public static void init(Editor _editor) {
 		editor = _editor;
-
-		actions.put("delete-line", DELETE_LINE);
-		actions.put("delete-line-content", DELETE_LINE_CONTENT);
-		actions.put("duplicate-lines-up", DUPLICATE_UP);
-		actions.put("duplicate-lines-down", DUPLICATE_DOWN);
-		actions.put("move-lines-up", MOVE_UP);
-		actions.put("move-lines-down", MOVE_DOWN);
-	}
-
-	public static Map.Entry<String, AbstractAction> getAction(String actionName) {
-		return RegistrableActions.getAction(actionName);
 	}
 
 	public static final AbstractAction DELETE_LINE = new AbstractAction() {
