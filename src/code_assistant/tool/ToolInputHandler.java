@@ -20,17 +20,17 @@ public class ToolInputHandler extends PdeInputHandler implements ToolConstants {
 		ToolEditor.init(editor);
 		BracketCloser.init(editor);
 
-		addKeyBinding("C+E", ToolTextArea.DELETE_LINE);
 		addKeyBinding("AS+UP", ToolTextArea.DUPLICATE_UP);
 		addKeyBinding("AS+DOWN", ToolTextArea.DUPLICATE_DOWN);
 		addKeyBinding("A+UP", ToolTextArea.MOVE_UP);
 		addKeyBinding("A+DOWN", ToolTextArea.MOVE_DOWN);
-		addKeyBinding("A+ENTER", ToolTextArea.INSERT_NEW_LINE_BELLOW_CURRENT_LINE);
+		addKeyBinding("TAB", ToolTextArea.INDENT_TEXT);
+		addKeyBinding("S+TAB", ToolTextArea.OUTDENT_TEXT);
+		addKeyBinding("A+ENTER", ToolTextArea.INSERT_NEW_LINE_BELLOW);
+		addKeyBinding("C+E", ToolTextArea.DELETE_LINE);
 		addKeyBinding("CS+E", "delete-line-content", ToolTextArea.DELETE_LINE_CONTENT);
 
 		addKeyBinding("ENTER", ToolEditor.HANDLE_ENTER);
-		addKeyBinding("TAB", ToolEditor.INDENT_TEXT);
-		addKeyBinding("S+TAB", ToolEditor.OUTDENT_TEXT);
 		addKeyBinding("CA+RIGHT", ToolEditor.SELECT_BLOCK);
 		addKeyBinding("C+T", "format-selected-text", ToolEditor.FORMAT_SELECTED_TEXT);
 	}

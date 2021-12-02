@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 
+import processing.app.Preferences;
 import processing.app.ui.Editor;
 
 public class ToolTextArea implements ToolConstants {
@@ -11,6 +12,7 @@ public class ToolTextArea implements ToolConstants {
 
 	public static void init(Editor _editor) {
 		editor = _editor;
+		EditorUtil.init(editor);
 	}
 
 	public static final AbstractAction DELETE_LINE = new AbstractAction() {
@@ -50,11 +52,24 @@ public class ToolTextArea implements ToolConstants {
 		}
 	};
 
-	static public final AbstractAction INSERT_NEW_LINE_BELLOW_CURRENT_LINE = new AbstractAction() {
+	static public final AbstractAction INSERT_NEW_LINE_BELLOW = new AbstractAction() {
 		public void actionPerformed(ActionEvent e) {
-			insertNewLineBellowCurrentLine(editor.getTextArea().getCaretLine());
+			insertNewLineBellow(editor.getTextArea().getCaretLine());
 		}
 	};
+	
+	static public final AbstractAction INDENT_TEXT = new AbstractAction() {
+		public void actionPerformed(ActionEvent e) {			
+			handleTabulation(false);
+		}
+	};
+	
+	static public final AbstractAction OUTDENT_TEXT = new AbstractAction() {
+		public void actionPerformed(ActionEvent e) {			
+			handleTabulation(true);
+		}
+	};
+	
 
 	/*
 	 * ******** METHODS ********
@@ -154,7 +169,7 @@ public class ToolTextArea implements ToolConstants {
 		editor.stopCompoundEdit();
 	}
 	
-	static private void insertNewLineBellowCurrentLine(int caretLine) {
+	static private void insertNewLineBellow(int caretLine) {
 		int indent = EditorUtil.getLineIndentation(caretLine);
 		String lineText = editor.getLineText(caretLine);
 
@@ -167,5 +182,23 @@ public class ToolTextArea implements ToolConstants {
 		editor.insertText(NL + (indent > 0 ? EditorUtil.addSpaces(indent) : ""));
 		editor.getTextArea().setCaretPosition(caretPos);
 		editor.stopCompoundEdit();
+	}
+	
+	
+	static private void handleTabulation(boolean isShiftDown) {
+		if (isShiftDown) {
+			editor.handleOutdent();
+			
+		} else if (editor.isSelectionActive()) {
+			editor.handleIndent();
+
+		} else if (Preferences.getBoolean("editor.tabs.expand")) {
+			// "editor.tabs.expand" means that each tab is made up of a
+			// stipulated number of spaces, and not just a single solid \t
+			editor.setSelectedText(TAB);
+
+		} else {
+			editor.setSelectedText("\t");
+		}
 	}
 }

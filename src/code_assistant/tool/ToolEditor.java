@@ -28,28 +28,6 @@ public class ToolEditor implements ToolConstants {
 		}
 	};
 	
-	static public final AbstractAction INDENT_TEXT = new AbstractAction() {
-		public void actionPerformed(ActionEvent e) {			
-			if (editor.isSelectionActive()) {
-				editor.handleIndent();
-
-			} else if (Preferences.getBoolean("editor.tabs.expand")) {
-				// "editor.tabs.expand" means that each tab is made up of a
-				// stipulated number of spaces, and not just a single solid \t
-				editor.setSelectedText(TAB);
-
-			} else {
-				editor.setSelectedText("\t");
-			}
-		}
-	};
-	
-	static public final AbstractAction OUTDENT_TEXT = new AbstractAction() {
-		public void actionPerformed(ActionEvent e) {			
-			editor.handleOutdent();
-		}
-	};
-	
 	static public final AbstractAction HANDLE_ENTER = new AbstractAction() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
