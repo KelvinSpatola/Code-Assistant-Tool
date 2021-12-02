@@ -40,13 +40,14 @@ public class BracketCloser implements RegistrableActions {
 			// if nothing is selected just add closing bracket, else wrap brackets around
 			// selection
 			if (!editor.isSelectionActive()) {
-				if (key == openingChar[i])
-					addClosingChar(i);
-				else if (key == closingChar[i] && lastChar == openingChar[i])
+				if (key == closingChar[i] && lastChar == openingChar[i])
 					removeClosingChar(i);
+				else if (key == openingChar[i])
+					addClosingChar(i);
 			} else if (key == openingChar[i] && editor.isSelectionActive())
 				addClosingChar(i, editor.getSelectionStart(), editor.getSelectionStop());
 		}
+		System.out.println(lastChar);
 	}
 
 	// add closing bracket and set caret inside brackets

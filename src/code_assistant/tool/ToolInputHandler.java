@@ -20,30 +20,32 @@ public class ToolInputHandler extends PdeInputHandler implements ToolConstants {
 		super(editor);
 
 		ToolTextArea.init(editor);
-//		addKeyBinding("C+E", ToolTextArea.getAction("delete-line").getValue());
-//		addKeyBinding("AS+UP", ToolTextArea.getAction("duplicate-lines-up").getValue());
-//		addKeyBinding("AS+DOWN", ToolTextArea.getAction("duplicate-lines-down").getValue());
-//		addKeyBinding("A+UP", ToolTextArea.getAction("move-lines-up").getValue());
-//		addKeyBinding("A+DOWN", ToolTextArea.getAction("move-lines-down").getValue());
-		addAction(ToolTextArea.getAction("delete-line"), "control E");
+		addKeyBinding("C+E", ToolTextArea.getAction("delete-line").getValue());
+//		addKeyBinding("CS+E", ToolTextArea.getAction("delete-line-content").getValue());
+		addKeyBinding("AS+UP", ToolTextArea.getAction("duplicate-lines-up").getValue());
+		addKeyBinding("AS+DOWN", ToolTextArea.getAction("duplicate-lines-down").getValue());
+		addKeyBinding("A+UP", ToolTextArea.getAction("move-lines-up").getValue());
+		addKeyBinding("A+DOWN", ToolTextArea.getAction("move-lines-down").getValue());
+
+//		addAction(ToolTextArea.getAction("delete-line"), "control E");
 		addAction(ToolTextArea.getAction("delete-line-content"), "control shift E");
-		addAction(ToolTextArea.getAction("duplicate-lines-up"), "alt shift UP");
-		addAction(ToolTextArea.getAction("duplicate-lines-down"), "alt shift DOWN");
-		addAction(ToolTextArea.getAction("move-lines-up"), "alt UP");
-		addAction(ToolTextArea.getAction("move-lines-down"), "alt DOWN");
+//		addAction(ToolTextArea.getAction("duplicate-lines-up"), "alt shift UP");
+//		addAction(ToolTextArea.getAction("duplicate-lines-down"), "alt shift DOWN");
+//		addAction(ToolTextArea.getAction("move-lines-up"), "alt UP");
+//		addAction(ToolTextArea.getAction("move-lines-down"), "alt DOWN");
 
 		ToolEditor.init(editor);
-		// addKeyBinding("CA+ENTER", ToolEditor.getAction("handle-enter").getValue());
-//		addKeyBinding("CA+RIGHT", ToolEditor.getAction("select-block").getValue());
-		// addKeyBinding("C+T",
-		// ToolEditor.getAction("format-selected-text").getValue());
-		addAction(ToolEditor.getAction("handle-enter"), "ENTER");
-		addAction(ToolEditor.getAction("insert-new-line-bellow-current-line"), "alt ENTER");
-		addAction(ToolEditor.getAction("select-block"), "control alt RIGHT");
+		addKeyBinding("ENTER", ToolEditor.getAction("handle-enter").getValue());
+		addKeyBinding("A+ENTER", ToolEditor.getAction("insert-new-line-bellow-current-line").getValue());
+		addKeyBinding("CA+RIGHT", ToolEditor.getAction("select-block").getValue());
+//		addKeyBinding("C+T", ToolEditor.getAction("format-selected-text").getValue());
+
+//		addAction(ToolEditor.getAction("handle-enter"), "ENTER");
+//		addAction(ToolEditor.getAction("insert-new-line-bellow-current-line"), "alt ENTER");
+//		addAction(ToolEditor.getAction("select-block"), "control alt RIGHT");
 		addAction(ToolEditor.getAction("format-selected-text"), "control T");
 
 		BracketCloser.init(editor);
-		// registerAction(BracketCloser.getAction("insert-closing-brace"), "ENTER");
 
 //		for (KeyStroke ks : editor.getTextArea().getInputMap().allKeys()) {
 //			System.out.println(ks + " " + editor.getTextArea().getInputMap().get(ks));
@@ -58,15 +60,9 @@ public class ToolInputHandler extends PdeInputHandler implements ToolConstants {
 	}
 
 	@Override
-	protected boolean isMnemonic(KeyEvent event) {
+	protected boolean isMnemonic(KeyEvent e) {
 		if (!Platform.isMacOS()) {
-			if (event.isAltDown() && !event.isControlDown() && event.getKeyChar() != KeyEvent.VK_UNDEFINED) {
-				// This is probably a menu mnemonic, don't pass it through.
-				// If it's an alt-NNNN sequence, those only work on the keypad
-				// and pass through UNDEFINED as the keyChar.
-//		    	  return true;
-
-				// System.out.println("MNEMONIC");
+			if (e.isAltDown() && Character.isLetter(e.getKeyChar())) {
 				return true;
 			}
 		}
