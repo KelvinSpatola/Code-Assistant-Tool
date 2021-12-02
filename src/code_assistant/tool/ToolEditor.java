@@ -4,10 +4,13 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 
+import code_assistant.util.EditorUtil;
+import code_assistant.util.Selection;
+import code_assistant.util.ToolConstants;
 import processing.app.Preferences;
 import processing.app.ui.Editor;
 
-public class ToolTextArea implements ToolConstants {
+public class ToolEditor implements ToolConstants {
 	private static Editor editor;
 
 	public static void init(Editor _editor) {

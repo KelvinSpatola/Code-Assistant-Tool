@@ -18,7 +18,7 @@
  * Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, MA  02111-1307  USA
  *
- * @author   ##author##
+ * @author   Kelvin Spatola
  * @modified ##date##
  * @version  ##tool.prettyVersion##
  */
@@ -45,7 +45,7 @@ public class CodeAssistant implements Tool {
 		Editor editor = base.getActiveEditor();
 		editor.getTextArea().setInputHandler(new CodeAssistantInputHandler(editor));
 
-		System.out.println(TOOL_NAME + " v. ##tool.prettyVersion## by Kelvin Spátola.");
+		System.out.println(TOOL_NAME + " v. ##tool.prettyVersion## by Kelvin Spatola.");
 
 		// editor.statusNotice("Kelvin Clark ");
 		// Messages.showWarning("PDE++ Tool", "Kelvin Clark Magalhaes Spatola");

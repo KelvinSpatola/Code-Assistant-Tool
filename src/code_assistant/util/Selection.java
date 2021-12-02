@@ -1,4 +1,4 @@
-package code_assistant.tool;
+package code_assistant.util;
 
 import processing.app.ui.Editor;
 
