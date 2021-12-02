@@ -26,13 +26,15 @@
 package code_assistant.tool;
 
 import processing.app.Base;
-import processing.app.tools.Tool; 
+import processing.app.tools.Tool;
+import processing.app.ui.Editor; 
 
 public class CodeAssistant implements Tool {
+	private final String TOOL_NAME = "Code Assistant";
 	private Base base;
 
 	public String getMenuTitle() {
-		return "##tool.name##";
+		return TOOL_NAME;
 	}
 
 	public void init(Base base) {
@@ -40,9 +42,10 @@ public class CodeAssistant implements Tool {
 	}
 
 	public void run() {
-		base.getActiveEditor().getTextArea().setInputHandler(new ToolInputHandler(base.getActiveEditor()));
+		Editor editor = base.getActiveEditor();
+		editor.getTextArea().setInputHandler(new CodeAssistantInputHandler(editor));
 
-		System.out.println(" ##tool.name## v. ##tool.prettyVersion## by ##author##.");
+		System.out.println(TOOL_NAME + " v. ##tool.prettyVersion## by Kelvin Spátola.");
 
 		// editor.statusNotice("Kelvin Clark ");
 		// Messages.showWarning("PDE++ Tool", "Kelvin Clark Magalhaes Spatola");

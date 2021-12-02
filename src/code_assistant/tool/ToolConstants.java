@@ -5,16 +5,7 @@ package code_assistant.tool;
 import processing.app.Preferences;
 
 public interface ToolConstants {
-//	int CTRL = InputEvent.CTRL_MASK;
-//	int ALT = InputEvent.ALT_MASK;
-//	int SHIFT = InputEvent.SHIFT_MASK;
-//
-//	int CTRL_ALT = CTRL | ALT;
-//	int CTRL_SHIFT = CTRL | SHIFT;
-//	int ALT_SHIFT = ALT | SHIFT;
-//	int ALT_GRAPH = CTRL | ALT | InputEvent.ALT_GRAPH_MASK;
-//	String ALT_GRAPH = "control alt altGraph BRACELEFT";
-
+	
 	int TAB_SIZE = Preferences.getInteger("editor.tabs.size");
 	String TAB = EditorUtil.addSpaces(TAB_SIZE);
 	String NL = "\n";
