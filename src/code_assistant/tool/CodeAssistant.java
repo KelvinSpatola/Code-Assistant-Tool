@@ -27,7 +27,7 @@ package code_assistant.tool;
 
 import processing.app.Base;
 import processing.app.tools.Tool;
-import processing.app.ui.Editor; 
+import processing.app.ui.Editor;
 
 public class CodeAssistant implements Tool {
 	private final String TOOL_NAME = "Code Assistant";
@@ -43,7 +43,12 @@ public class CodeAssistant implements Tool {
 
 	public void run() {
 		Editor editor = base.getActiveEditor();
-		editor.getTextArea().setInputHandler(new CodeAssistantInputHandler(editor));
+
+		CodeAssistantInputHandler inputHandler = new CodeAssistantInputHandler(editor, 
+				new JavaModeInputs(editor),
+				new BracketCloser(editor));
+
+		editor.getTextArea().setInputHandler(inputHandler);
 
 		System.out.println(TOOL_NAME + " v. ##tool.prettyVersion## by Kelvin Spatola.");
 

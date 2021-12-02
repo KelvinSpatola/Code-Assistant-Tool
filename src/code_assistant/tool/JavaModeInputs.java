@@ -1,6 +1,7 @@
 package code_assistant.tool;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractAction;
 
@@ -11,12 +12,12 @@ import processing.app.Language;
 import processing.app.Preferences;
 import processing.app.ui.Editor;
 
-public class JavaModeInputs implements ToolConstants {
+public class JavaModeInputs implements KeyHandler, ToolConstants {
 	private static Editor editor;
 
-	public static void init(Editor _editor) {
+	public JavaModeInputs(Editor _editor) {
 		editor = _editor;
-		EditorUtil.init(editor); 
+		EditorUtil.init(editor);
 	}
 
 	static public final AbstractAction FORMAT_SELECTED_TEXT = new AbstractAction() {
@@ -24,13 +25,13 @@ public class JavaModeInputs implements ToolConstants {
 			formatSelectedText();
 		}
 	};
-	
+
 	static public final AbstractAction SELECT_BLOCK = new AbstractAction() {
 		public void actionPerformed(ActionEvent e) {
 			selectBlockOfCode();
 		}
 	};
-	
+
 	static public final AbstractAction HANDLE_ENTER = new AbstractAction() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
@@ -55,8 +56,8 @@ public class JavaModeInputs implements ToolConstants {
 //				} else {
 //					insertNewLineBellowCurrentLine(caretLine);
 //				}
-				//insertNewLineBellowCurrentLine(caretLine);  <------
-				
+				// insertNewLineBellowCurrentLine(caretLine); <------
+
 				handleNewLine();
 				return;
 			}
@@ -92,7 +93,7 @@ public class JavaModeInputs implements ToolConstants {
 				splitComment(caretLine);
 
 			else
-				//insertNewLineBellowCurrentLine(caretLine);
+				// insertNewLineBellowCurrentLine(caretLine);
 				handleNewLine();
 		}
 	};
@@ -100,7 +101,7 @@ public class JavaModeInputs implements ToolConstants {
 	/*
 	 * ******** METHODS ********
 	 */
-	
+
 	static private void handleNewLine() {
 		char[] code = editor.getText().toCharArray();
 
@@ -329,6 +330,62 @@ public class JavaModeInputs implements ToolConstants {
 			}
 
 			editor.setSelection(++start, end);
+		}
+	}
+
+	@Override
+	public boolean handlePressed(KeyEvent e) {
+		if (e.getKeyChar() == '}') {
+			char[] contents = editor.getText().toCharArray();
+
+			if (Preferences.getBoolean("editor.indent")) {
+				if (editor.isSelectionActive())
+					editor.setSelectedText("");
+
+				// if this brace is the only thing on the line, outdent
+				// index to the character to the left of the caret
+				int prevCharIndex = editor.getCaretOffset() - 1;
+
+				// backup from the current caret position to the last newline,
+				// checking for anything besides whitespace along the way.
+				// if there's something besides whitespace, exit without
+				// messing any sort of indenting.
+				int index = prevCharIndex;
+				boolean finished = false;
+				
+				while ((index != -1) && (!finished)) {
+					if (contents[index] == 10) {
+						finished = true;
+						index++;
+					} else if (contents[index] != ' ') {
+						// don't do anything, this line has other stuff on it
+						return false;
+					} else {
+						index--;
+					}
+				}
+				if (!finished)
+					return false; // brace with no start
+				
+				int lineStartIndex = index;
+
+				int pairedSpaceCount = EditorUtil.calcBraceIndent(prevCharIndex, contents); // , 1);
+				
+				if (pairedSpaceCount == -1)
+					return false;
+
+				editor.getTextArea().setSelectionStart(lineStartIndex);
+				editor.setSelectedText(EditorUtil.addSpaces(pairedSpaceCount));
+
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static void println(Object... objects) {
+		for (Object o : objects) {
+			System.out.println(o.toString());
 		}
 	}
 }

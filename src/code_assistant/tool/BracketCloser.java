@@ -1,8 +1,10 @@
 package code_assistant.tool;
 
+import java.awt.event.KeyEvent;
+
 import processing.app.ui.Editor;
 
-public class BracketCloser {
+public class BracketCloser implements KeyHandler {
 	private static Editor editor;
 
 	// needed to remove double brackets (when typing too fast)
@@ -12,24 +14,29 @@ public class BracketCloser {
 	static char[] openingChar = { '(', '[', '{', '"', '\'', '<' };
 	static char[] closingChar = { ')', ']', '}', '"', '\'', '>' };
 
-	public static void init(Editor _editor) {
+	public BracketCloser(Editor _editor) {
 		editor = _editor;
 	}
-
-	public static void update(char key) {
+	
+	@Override
+	public boolean handlePressed(KeyEvent e) {
+		int keyChar = e.getKeyChar();
+		
 		// loop through array of opening brackets to trigger completion
 		for (int i = 0; i < openingChar.length; i++) {
 			// if nothing is selected just add closing bracket, else wrap brackets around
 			// selection
 			if (!editor.isSelectionActive()) {
-				if (key == openingChar[i])
+				if (keyChar == openingChar[i])
 					addClosingChar(i);
-				else if (key == closingChar[i] && lastChar == openingChar[i])
+				else if (keyChar == closingChar[i] && lastChar == openingChar[i])
 					removeClosingChar(i);
-			} else if (key == openingChar[i] && editor.isSelectionActive())
+			} else if (keyChar == openingChar[i] && editor.isSelectionActive())
 				addClosingChar(i, editor.getSelectionStart(), editor.getSelectionStop());
-		}
+		}		
+		return false;
 	}
+
 
 	// add closing bracket and set caret inside brackets
 	private static void addClosingChar(int positionOfChar) {
