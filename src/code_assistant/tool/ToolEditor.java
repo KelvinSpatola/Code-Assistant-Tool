@@ -27,13 +27,6 @@ public class ToolEditor implements ToolConstants {
 			selectBlockOfCode();
 		}
 	};
-
-	
-	static public final AbstractAction INSERT_NEW_LINE_BELLOW_CURRENT_LINE = new AbstractAction() {
-		public void actionPerformed(ActionEvent e) {
-			insertNewLineBellowCurrentLine(editor.getTextArea().getCaretLine());
-		}
-	};
 	
 	static public final AbstractAction INDENT_TEXT = new AbstractAction() {
 		public void actionPerformed(ActionEvent e) {			
@@ -248,21 +241,6 @@ public class ToolEditor implements ToolConstants {
 			editor.insertText(NL + EditorUtil.addSpaces(indent - (indent % TAB_SIZE)) + " */");
 			editor.getTextArea().setCaretPosition(caretPos);
 		}
-		editor.stopCompoundEdit();
-	}
-
-	static private void insertNewLineBellowCurrentLine(int caretLine) {
-		int indent = EditorUtil.getLineIndentation(caretLine);
-		String lineText = editor.getLineText(caretLine);
-
-		if (lineText.contains("{") && (EditorUtil.caretPositionInsideLine() > lineText.indexOf("{")))
-			indent += TAB_SIZE;
-
-		int caretPos = editor.getCaretOffset();
-
-		editor.startCompoundEdit();
-		editor.insertText(NL + (indent > 0 ? EditorUtil.addSpaces(indent) : ""));
-		editor.getTextArea().setCaretPosition(caretPos);
 		editor.stopCompoundEdit();
 	}
 

@@ -29,7 +29,6 @@ public class ToolTextArea implements ToolConstants {
 	public static final AbstractAction DUPLICATE_UP = new AbstractAction() {
 		public void actionPerformed(ActionEvent e) {
 			duplicateLines(true);
-
 		}
 	};
 
@@ -48,6 +47,12 @@ public class ToolTextArea implements ToolConstants {
 	public static final AbstractAction MOVE_DOWN = new AbstractAction() {
 		public void actionPerformed(ActionEvent e) {
 			moveLines(false);
+		}
+	};
+
+	static public final AbstractAction INSERT_NEW_LINE_BELLOW_CURRENT_LINE = new AbstractAction() {
+		public void actionPerformed(ActionEvent e) {
+			insertNewLineBellowCurrentLine(editor.getTextArea().getCaretLine());
 		}
 	};
 
@@ -146,6 +151,21 @@ public class ToolTextArea implements ToolConstants {
 			// update selection
 			editor.setSelection(newSelectionStart, newSelectionEnd);
 		}
+		editor.stopCompoundEdit();
+	}
+	
+	static private void insertNewLineBellowCurrentLine(int caretLine) {
+		int indent = EditorUtil.getLineIndentation(caretLine);
+		String lineText = editor.getLineText(caretLine);
+
+		if (lineText.contains("{") && (EditorUtil.caretPositionInsideLine() > lineText.indexOf("{")))
+			indent += TAB_SIZE;
+
+		int caretPos = editor.getCaretOffset();
+
+		editor.startCompoundEdit();
+		editor.insertText(NL + (indent > 0 ? EditorUtil.addSpaces(indent) : ""));
+		editor.getTextArea().setCaretPosition(caretPos);
 		editor.stopCompoundEdit();
 	}
 }

@@ -1,8 +1,6 @@
 package code_assistant.tool;
 
-import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.awt.event.ActionListener;
 
 import javax.swing.AbstractAction;
 import javax.swing.KeyStroke;
@@ -27,15 +25,14 @@ public class ToolInputHandler extends PdeInputHandler implements ToolConstants {
 		addKeyBinding("AS+DOWN", ToolTextArea.DUPLICATE_DOWN);
 		addKeyBinding("A+UP", ToolTextArea.MOVE_UP);
 		addKeyBinding("A+DOWN", ToolTextArea.MOVE_DOWN);
+		addKeyBinding("A+ENTER", ToolTextArea.INSERT_NEW_LINE_BELLOW_CURRENT_LINE);
 		addKeyBinding("CS+E", "delete-line-content", ToolTextArea.DELETE_LINE_CONTENT);
 
 		addKeyBinding("ENTER", ToolEditor.HANDLE_ENTER);
 		addKeyBinding("TAB", ToolEditor.INDENT_TEXT);
 		addKeyBinding("S+TAB", ToolEditor.OUTDENT_TEXT);
-		addKeyBinding("A+ENTER", ToolEditor.INSERT_NEW_LINE_BELLOW_CURRENT_LINE);
 		addKeyBinding("CA+RIGHT", ToolEditor.SELECT_BLOCK);
 		addKeyBinding("C+T", "format-selected-text", ToolEditor.FORMAT_SELECTED_TEXT);
-		
 	}
 
 	public void addKeyBinding(String keyBinding, String actionName, AbstractAction action) {
