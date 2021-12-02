@@ -1,6 +1,9 @@
 package code_assistant.tool;
 
 import java.awt.event.KeyEvent;
+import java.util.Map;
+
+import javax.swing.AbstractAction;
 
 import processing.app.ui.Editor;
 
@@ -17,8 +20,7 @@ public class BracketCloser implements KeyHandler {
 	public BracketCloser(Editor _editor) {
 		editor = _editor;
 	}
-	
-	@Override
+
 	public boolean handlePressed(KeyEvent e) {
 		int keyChar = e.getKeyChar();
 		

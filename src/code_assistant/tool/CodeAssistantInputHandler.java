@@ -3,6 +3,7 @@ package code_assistant.tool;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.KeyStroke;
@@ -13,18 +14,12 @@ import processing.app.ui.Editor;
 
 public class CodeAssistantInputHandler extends PdeInputHandler {
 	protected List<KeyHandler> keyHandlers = new ArrayList<>();
-	
 
 	// CONSTRUCTOR
-	public CodeAssistantInputHandler(Editor editor, KeyHandler ... handlers) {
+	public CodeAssistantInputHandler(Editor editor, KeyHandler... handlers) {
 		super(editor);
-		
-		for (KeyHandler handler : handlers) {
-			keyHandlers.add(handler);
-		}
 
 		ToolEditor.init(editor);
-
 		addKeyBinding("AS+UP", ToolEditor.DUPLICATE_UP);
 		addKeyBinding("AS+DOWN", ToolEditor.DUPLICATE_DOWN);
 		addKeyBinding("A+UP", ToolEditor.MOVE_UP);
@@ -33,14 +28,22 @@ public class CodeAssistantInputHandler extends PdeInputHandler {
 		addKeyBinding("S+TAB", ToolEditor.OUTDENT_TEXT);
 		addKeyBinding("A+ENTER", ToolEditor.INSERT_NEW_LINE_BELLOW);
 		addKeyBinding("C+E", ToolEditor.DELETE_LINE);
-		addKeyBinding("CS+E", "delete-line-content", ToolEditor.DELETE_LINE_CONTENT);
-
-		addKeyBinding("ENTER", JavaModeInputs.HANDLE_ENTER);
-		addKeyBinding("CA+RIGHT", JavaModeInputs.SELECT_BLOCK);
-		addKeyBinding("C+T", "format-selected-text", JavaModeInputs.FORMAT_SELECTED_TEXT);
+		addKeyBinding(editor, "CS+E", "delete-line-content", ToolEditor.DELETE_LINE_CONTENT);
+		
+		for (int i = 0; i < handlers.length; i++) {
+			keyHandlers.add(handlers[i]);
+		}
+		
+		for (Map.Entry<String, AbstractAction> actionMap : KeyHandler.getActions().entrySet()) {
+			String keyBinding = actionMap.getKey();
+			AbstractAction action = actionMap.getValue();
+			addKeyBinding(keyBinding, action);
+			
+			System.out.println(keyBinding + " -> " + action.getClass().getName());
+		}
 	}
 
-	public void addKeyBinding(String keyBinding, String actionName, AbstractAction action) {
+	public static void addKeyBinding(Editor editor, String keyBinding, String actionName, AbstractAction action) {
 		KeyStroke ks = parseKeyStroke(keyBinding);
 		editor.getTextArea().getInputMap().put(ks, actionName);
 		editor.getTextArea().getActionMap().put(actionName, action);
@@ -61,8 +64,8 @@ public class CodeAssistantInputHandler extends PdeInputHandler {
 		if (e.isMetaDown())
 			return false;
 
-		for (KeyHandler keyHandler : keyHandlers) {
-			if (keyHandler.handlePressed(e)) {
+		for (KeyHandler handler : keyHandlers) {
+			if (handler.handlePressed(e)) {
 				handleInputMethodCommit();
 				e.consume();
 				return true;

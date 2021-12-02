@@ -2,6 +2,7 @@ package code_assistant.tool;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.util.Map;
 
 import javax.swing.AbstractAction;
 
@@ -18,6 +19,12 @@ public class JavaModeInputs implements KeyHandler, ToolConstants {
 	public JavaModeInputs(Editor _editor) {
 		editor = _editor;
 		EditorUtil.init(editor);
+
+		actions.put("ENTER", HANDLE_ENTER);
+		actions.put("CA+RIGHT", SELECT_BLOCK);
+
+		CodeAssistantInputHandler.addKeyBinding(editor, "C+T",
+				"format-selected-text", JavaModeInputs.FORMAT_SELECTED_TEXT);
 	}
 
 	static public final AbstractAction FORMAT_SELECTED_TEXT = new AbstractAction() {
@@ -352,7 +359,7 @@ public class JavaModeInputs implements KeyHandler, ToolConstants {
 				// messing any sort of indenting.
 				int index = prevCharIndex;
 				boolean finished = false;
-				
+
 				while ((index != -1) && (!finished)) {
 					if (contents[index] == 10) {
 						finished = true;
@@ -366,11 +373,11 @@ public class JavaModeInputs implements KeyHandler, ToolConstants {
 				}
 				if (!finished)
 					return false; // brace with no start
-				
+
 				int lineStartIndex = index;
 
 				int pairedSpaceCount = EditorUtil.calcBraceIndent(prevCharIndex, contents); // , 1);
-				
+
 				if (pairedSpaceCount == -1)
 					return false;
 
