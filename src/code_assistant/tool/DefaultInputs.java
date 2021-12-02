@@ -10,8 +10,8 @@ import code_assistant.util.ToolConstants;
 import processing.app.Preferences;
 import processing.app.ui.Editor;
 
-public class ToolEditor implements ToolConstants {
-	private static Editor editor;
+public class DefaultInputs implements ToolConstants {
+	static private Editor editor;
 
 	public static void init(Editor _editor) {
 		editor = _editor;
@@ -78,7 +78,7 @@ public class ToolEditor implements ToolConstants {
 	 * ******** METHODS ********
 	 */
 
-	private static void duplicateLines(boolean up) {
+	static private void duplicateLines(boolean up) {
 		Selection s = new Selection(editor);
 
 		if (s.getEndLine() == editor.getLineCount() - 1) {
@@ -98,7 +98,7 @@ public class ToolEditor implements ToolConstants {
 			editor.setSelection(editor.getCaretOffset() - 1, s.getEnd() + 1);
 	}
 
-	private static void deleteLine(int line) {
+	static private void deleteLine(int line) {
 		// in case we are in the last line of text (but not when it's also first one)
 		if (line == editor.getLineCount() - 1 && line != 0) {
 			// subtracting 1 from getLineStartOffset() will delete the line break prior
@@ -121,7 +121,7 @@ public class ToolEditor implements ToolConstants {
 		}
 	}
 
-	private static void deleteLineContent(int line) {
+	static private void deleteLineContent(int line) {
 		int start = editor.getTextArea().getLineStartNonWhiteSpaceOffset(line);
 		int end = editor.getLineStopOffset(line) - 1;
 
@@ -129,7 +129,7 @@ public class ToolEditor implements ToolConstants {
 		editor.setSelectedText("");
 	}
 
-	private static void moveLines(boolean moveUp) {
+	static private void moveLines(boolean moveUp) {
 		Selection s = new Selection(editor);
 
 		int targetLine = moveUp ? s.getStartLine() - 1 : s.getEndLine() + 1;

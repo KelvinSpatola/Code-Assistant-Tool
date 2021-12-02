@@ -19,16 +19,16 @@ public class CodeAssistantInputHandler extends PdeInputHandler {
 	public CodeAssistantInputHandler(Editor editor, KeyHandler... handlers) {
 		super(editor);
 
-		ToolEditor.init(editor);
-		addKeyBinding("AS+UP", ToolEditor.DUPLICATE_UP);
-		addKeyBinding("AS+DOWN", ToolEditor.DUPLICATE_DOWN);
-		addKeyBinding("A+UP", ToolEditor.MOVE_UP);
-		addKeyBinding("A+DOWN", ToolEditor.MOVE_DOWN);
-		addKeyBinding("TAB", ToolEditor.INDENT_TEXT);
-		addKeyBinding("S+TAB", ToolEditor.OUTDENT_TEXT);
-		addKeyBinding("A+ENTER", ToolEditor.INSERT_NEW_LINE_BELLOW);
-		addKeyBinding("C+E", ToolEditor.DELETE_LINE);
-		addKeyBinding(editor, "CS+E", "delete-line-content", ToolEditor.DELETE_LINE_CONTENT);
+		DefaultInputs.init(editor);
+		addKeyBinding("AS+UP", DefaultInputs.DUPLICATE_UP);
+		addKeyBinding("AS+DOWN", DefaultInputs.DUPLICATE_DOWN);
+		addKeyBinding("A+UP", DefaultInputs.MOVE_UP);
+		addKeyBinding("A+DOWN", DefaultInputs.MOVE_DOWN);
+		addKeyBinding("TAB", DefaultInputs.INDENT_TEXT);
+		addKeyBinding("S+TAB", DefaultInputs.OUTDENT_TEXT);
+		addKeyBinding("A+ENTER", DefaultInputs.INSERT_NEW_LINE_BELLOW);
+		addKeyBinding("C+E", DefaultInputs.DELETE_LINE);
+		addKeyBinding(editor, "CS+E", "delete-line-content", DefaultInputs.DELETE_LINE_CONTENT);
 		
 		for (int i = 0; i < handlers.length; i++) {
 			keyHandlers.add(handlers[i]);
@@ -43,7 +43,7 @@ public class CodeAssistantInputHandler extends PdeInputHandler {
 		}
 	}
 
-	public static void addKeyBinding(Editor editor, String keyBinding, String actionName, AbstractAction action) {
+	static public void addKeyBinding(Editor editor, String keyBinding, String actionName, AbstractAction action) {
 		KeyStroke ks = parseKeyStroke(keyBinding);
 		editor.getTextArea().getInputMap().put(ks, actionName);
 		editor.getTextArea().getActionMap().put(actionName, action);

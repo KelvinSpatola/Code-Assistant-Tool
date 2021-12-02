@@ -2,7 +2,6 @@ package code_assistant.tool;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.util.Map;
 
 import javax.swing.AbstractAction;
 
@@ -14,7 +13,7 @@ import processing.app.Preferences;
 import processing.app.ui.Editor;
 
 public class JavaModeInputs implements KeyHandler, ToolConstants {
-	private static Editor editor;
+	static private Editor editor;
 
 	public JavaModeInputs(Editor _editor) {
 		editor = _editor;
