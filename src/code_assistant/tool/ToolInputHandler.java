@@ -15,8 +15,6 @@ public class ToolInputHandler extends PdeInputHandler implements ToolConstants {
 
 	// CONSTRUCTOR
 	public ToolInputHandler(Editor editor) {
-		// this.editor = editor;
-		// editor.getTextArea().addKeyListener(this);
 		super(editor);
 
 		ToolTextArea.init(editor);
@@ -27,27 +25,15 @@ public class ToolInputHandler extends PdeInputHandler implements ToolConstants {
 		addKeyBinding("A+DOWN", ToolTextArea.MOVE_DOWN);
 		addKeyBinding("CS+E", "delete-line-content", ToolTextArea.DELETE_LINE_CONTENT);
 
-//		addAction(ToolTextArea.getAction("delete-line"), "control E");
-//		addAction(ToolTextArea.getAction("delete-line-content"), "control shift E");
-//		addAction(ToolTextArea.getAction("duplicate-lines-up"), "alt shift UP");
-//		addAction(ToolTextArea.getAction("duplicate-lines-down"), "alt shift DOWN");
-//		addAction(ToolTextArea.getAction("move-lines-up"), "alt UP");
-//		addAction(ToolTextArea.getAction("move-lines-down"), "alt DOWN");
-
 		ToolEditor.init(editor);
 		addKeyBinding("ENTER", ToolEditor.HANDLE_ENTER);
 		addKeyBinding("A+ENTER", ToolEditor.INSERT_NEW_LINE_BELLOW_CURRENT_LINE);
 		addKeyBinding("CA+RIGHT", ToolEditor.SELECT_BLOCK);
 		addKeyBinding("C+T", "format-selected-text", ToolEditor.FORMAT_SELECTED_TEXT);
 
-//		addAction(ToolEditor.getAction("handle-enter"), "ENTER");
-//		addAction(ToolEditor.getAction("insert-new-line-bellow-current-line"), "alt ENTER");
-//		addAction(ToolEditor.getAction("select-block"), "control alt RIGHT");
-//		addAction(ToolEditor.getAction("format-selected-text"), "control T");
-
 		BracketCloser.init(editor);
 	}
-	
+
 	public void addKeyBinding(String keyBinding, String actionName, AbstractAction action) {
 		KeyStroke ks = parseKeyStroke(keyBinding);
 		editor.getTextArea().getInputMap().put(ks, actionName);
@@ -87,12 +73,15 @@ public class ToolInputHandler extends PdeInputHandler implements ToolConstants {
 			handleTabulation(e.isShiftDown());
 			e.consume();
 
-			// VK_ENTER -> 10 | Return key (on Mac OS) -> 13
-		} else if (keyCode == KeyEvent.VK_ENTER || keyCode == 13) {
-			// handleNewLine();
-			e.consume();
+		}
+		// VK_ENTER -> 10 | Return key (on Mac OS) -> 13
+//			else if (keyCode == KeyEvent.VK_ENTER || keyCode == 13) {
+//			// handleNewLine();
+//			e.consume();
+//
+//		} else 
 
-		} else if (keyChar == '}') {
+		if (keyChar == '}') {
 			char[] contents = editor.getText().toCharArray();
 
 			if (Preferences.getBoolean("editor.indent")) {

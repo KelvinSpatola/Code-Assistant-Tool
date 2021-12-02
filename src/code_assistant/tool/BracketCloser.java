@@ -2,7 +2,7 @@ package code_assistant.tool;
 
 import processing.app.ui.Editor;
 
-public class BracketCloser implements RegistrableActions {
+public class BracketCloser {
 	private static Editor editor;
 
 	// needed to remove double brackets (when typing too fast)
