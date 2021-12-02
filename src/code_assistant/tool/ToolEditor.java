@@ -16,30 +16,48 @@ public class ToolEditor implements ToolConstants {
 		EditorUtil.init(editor);
 	}
 
-	public static final AbstractAction FORMAT_SELECTED_TEXT = new AbstractAction() {
-		@Override
+	static public final AbstractAction FORMAT_SELECTED_TEXT = new AbstractAction() {
 		public void actionPerformed(ActionEvent e) {
 			formatSelectedText();
 		}
 	};
 	
-
-	public static final AbstractAction SELECT_BLOCK = new AbstractAction() {
-		@Override
+	static public final AbstractAction SELECT_BLOCK = new AbstractAction() {
 		public void actionPerformed(ActionEvent e) {
 			selectBlockOfCode();
 		}
 	};
 
 	
-	public static final AbstractAction INSERT_NEW_LINE_BELLOW_CURRENT_LINE = new AbstractAction() {
-		@Override
+	static public final AbstractAction INSERT_NEW_LINE_BELLOW_CURRENT_LINE = new AbstractAction() {
 		public void actionPerformed(ActionEvent e) {
 			insertNewLineBellowCurrentLine(editor.getTextArea().getCaretLine());
 		}
 	};
 	
-	public static final AbstractAction HANDLE_ENTER = new AbstractAction() {
+	static public final AbstractAction INDENT_TEXT = new AbstractAction() {
+		public void actionPerformed(ActionEvent e) {			
+			if (editor.isSelectionActive()) {
+				editor.handleIndent();
+
+			} else if (Preferences.getBoolean("editor.tabs.expand")) {
+				// "editor.tabs.expand" means that each tab is made up of a
+				// stipulated number of spaces, and not just a single solid \t
+				editor.setSelectedText(TAB);
+
+			} else {
+				editor.setSelectedText("\t");
+			}
+		}
+	};
+	
+	static public final AbstractAction OUTDENT_TEXT = new AbstractAction() {
+		public void actionPerformed(ActionEvent e) {			
+			editor.handleOutdent();
+		}
+	};
+	
+	static public final AbstractAction HANDLE_ENTER = new AbstractAction() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 

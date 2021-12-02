@@ -41,9 +41,6 @@ public class CodeAssistant implements Tool {
 
 	public void run() {
 		base.getActiveEditor().getTextArea().setInputHandler(new ToolInputHandler(base.getActiveEditor()));
-		// System.out.println(base.getActiveEditor().getTextArea().getInputHandler());
-
-		// new ToolInputHandler(base.getActiveEditor());
 
 		System.out.println(" ##tool.name## v. ##tool.prettyVersion## by ##author##.");
 
