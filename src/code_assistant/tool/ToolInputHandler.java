@@ -37,7 +37,8 @@ public class ToolInputHandler extends PdeInputHandler implements ToolConstants {
 //		addKeyBinding("CA+RIGHT", ToolEditor.getAction("select-block").getValue());
 		// addKeyBinding("C+T",
 		// ToolEditor.getAction("format-selected-text").getValue());
-		addAction(ToolEditor.getAction("handle-enter"), "alt ENTER");
+		addAction(ToolEditor.getAction("handle-enter"), "ENTER");
+		addAction(ToolEditor.getAction("insert-new-line-bellow-current-line"), "alt ENTER");
 		addAction(ToolEditor.getAction("select-block"), "control alt RIGHT");
 		addAction(ToolEditor.getAction("format-selected-text"), "control T");
 
@@ -97,7 +98,7 @@ public class ToolInputHandler extends PdeInputHandler implements ToolConstants {
 
 			// VK_ENTER -> 10 | Return key (on Mac OS) -> 13
 		} else if (keyCode == KeyEvent.VK_ENTER || keyCode == 13) {
-			handleNewLine();
+			// handleNewLine();
 			e.consume();
 
 		} else if (keyChar == '}') {
@@ -144,11 +145,6 @@ public class ToolInputHandler extends PdeInputHandler implements ToolConstants {
 				return true;
 			}
 		}
-		char[] code = editor.getText().toCharArray();
-		char currChar = code[editor.getCaretOffset()];
-		System.out.println("curr char: '"  + currChar 
-				+ "' | prev char: '" + EditorUtil.prevChar() + "'");
-
 		return false;
 	}
 
@@ -166,101 +162,6 @@ public class ToolInputHandler extends PdeInputHandler implements ToolConstants {
 
 		} else {
 			editor.setSelectedText("\t");
-		}
-	}
-
-	private void handleNewLine() {
-		char[] code = editor.getText().toCharArray();
-
-		if (Preferences.getBoolean("editor.indent")) {
-
-			int caretPos = editor.getCaretOffset();
-
-			// this is the previous character
-			// (i.e. when you hit return, it'll be the last character
-			// just before where the newline will be inserted)
-			// int prevPos = caretPos - 1;
-
-			// if the previous thing is a brace (whether prev line or
-			// up farther) then the correct indent is the number of spaces
-			// on that line + 'indent'.
-			// if the previous line is not a brace, then just use the
-			// identical indentation to the previous line
-
-			// calculate the amount of indent on the previous line
-			// this will be used *only if the prev line is not an indent*
-			int spaceCount = EditorUtil.getLineIndentationOfOffset(caretPos - 1);
-
-			// Let's check if the last character is an open brace, then indent.
-			int index = caretPos - 1;
-			while ((index >= 0) && Character.isWhitespace(code[index])) {
-				index--;
-			}
-			if (index != -1) {
-				// still won't catch a case where prev stuff is a comment
-				if (code[index] == '{') {
-					// intermediate lines be damned,
-					// use the indent for this line instead
-					spaceCount = EditorUtil.getLineIndentationOfOffset(index);
-					spaceCount += TAB_SIZE;
-				}
-			}
-
-			// now before inserting this many spaces, walk forward from
-			// the caret position and count the number of spaces,
-			// so that the number of spaces aren't duplicated again
-			index = caretPos;
-			int extraSpaceCount = 0;
-			while ((index < code.length) && (code[index] == ' ')) {
-				extraSpaceCount++;
-				index++;
-			}
-			int braceCount = 0;
-			while ((index < code.length) && (code[index] != '\n')) {
-				if (code[index] == '}') {
-					braceCount++;
-				}
-				index++;
-			}
-
-			// Hitting return on a line with spaces *after* the caret
-			// can cause trouble. For 0099, was ignoring the case, but this is
-			// annoying, so in 0122 we're trying to fix that.
-			spaceCount -= extraSpaceCount;
-
-			if (spaceCount < 0) {
-				editor.getTextArea().setSelectionEnd(editor.getSelectionStop() - spaceCount);
-				editor.setSelectedText(NL);
-				editor.getTextArea().setCaretPosition(editor.getCaretOffset() + extraSpaceCount + spaceCount);
-			} else {
-				String insertion = NL + EditorUtil.addSpaces(spaceCount);
-				editor.setSelectedText(insertion);
-				editor.getTextArea().setCaretPosition(editor.getCaretOffset() + extraSpaceCount);
-			}
-
-			// not gonna bother handling more than one brace
-			if (braceCount > 0) {
-				System.out.println("1");
-				int selectionStart = editor.getSelectionStart();
-
-				if (selectionStart - TAB_SIZE >= 0) {
-					System.out.println("2");
-					editor.setSelection(selectionStart - TAB_SIZE, selectionStart);
-
-					// if these are spaces that we can delete
-					if (editor.getSelectedText().equals(TAB)) {
-						System.out.println("3");
-						editor.setSelectedText("");
-					} else {
-						System.out.println("4");
-						editor.setSelection(selectionStart, selectionStart);
-					}
-				}
-			}
-		} else {
-			// Enter/Return was being consumed by somehow even if false
-			// was returned, so this is a band-aid to simply fire the event again.
-			editor.setSelectedText(NL);
 		}
 	}
 
@@ -287,4 +188,9 @@ public class ToolInputHandler extends PdeInputHandler implements ToolConstants {
 		return false;
 	}
 
+	public static void println(Object... objects) {
+		for (Object o : objects) {
+			System.out.println(o.toString());
+		}
+	}
 }

@@ -12,12 +12,15 @@ public class Selection {
 		startLine = textarea.getSelectionStartLine();
 		endLine = textarea.getSelectionStopLine();
 
-		if (editor.getSelectionStop() == editor.getLineStartOffset(endLine)) {
+		// in case this selection ends with the caret at the beginning of the last line,
+		// not selecting any text
+		if (editor.isSelectionActive() && editor.getLineStartOffset(endLine) == editor.getSelectionStop()) {
 			endLine--;
 		}
 
 		start = editor.getLineStartOffset(startLine);
-		end = editor.getLineStopOffset(endLine) - 1;
+		end = Math.max(start, editor.getLineStopOffset(endLine) - 1);
+
 		text = editor.getText(start, end);
 	}
 
@@ -39,5 +42,9 @@ public class Selection {
 
 	public String getText() {
 		return text;
+	}
+
+	public boolean isEmpty() {
+		return text.isEmpty();
 	}
 }

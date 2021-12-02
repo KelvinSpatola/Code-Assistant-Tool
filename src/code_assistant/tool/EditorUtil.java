@@ -21,7 +21,7 @@ public final class EditorUtil implements ToolConstants {
 	static public int getLineIndentationOfOffset(int offset) {
 		int line = editor.getTextArea().getLineOfOffset(offset);
 		return getLineIndentation(line);
-	};
+	}
 
 	static public int getSelectionIndentation(int startLine, int endLine) {
 		int result = getLineIndentation(startLine);
@@ -74,6 +74,10 @@ public final class EditorUtil implements ToolConstants {
 
 		return caretOffset - lineStartOffset;
 	}
+	
+//	static public int getContextIndentation(int offset) {
+//		return -1;
+//	}
 
 	/**
 	 * Walk back from 'index' until the brace that seems to be the beginning of the

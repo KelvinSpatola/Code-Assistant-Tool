@@ -26,7 +26,6 @@ public class ToolTextArea implements RegistrableActions, ToolConstants {
 	}
 
 	public static final AbstractAction DELETE_LINE = new AbstractAction() {
-		@Override
 		public void actionPerformed(ActionEvent e) {
 			deleteLine(editor.getTextArea().getCaretLine());
 		}
@@ -40,7 +39,6 @@ public class ToolTextArea implements RegistrableActions, ToolConstants {
 	};
 
 	public static final AbstractAction DUPLICATE_UP = new AbstractAction() {
-		@Override
 		public void actionPerformed(ActionEvent e) {
 			duplicateLines(true);
 
@@ -48,21 +46,18 @@ public class ToolTextArea implements RegistrableActions, ToolConstants {
 	};
 
 	public static final AbstractAction DUPLICATE_DOWN = new AbstractAction() {
-		@Override
 		public void actionPerformed(ActionEvent e) {
 			duplicateLines(false);
 		}
 	};
 
 	public static final AbstractAction MOVE_UP = new AbstractAction() {
-		@Override
 		public void actionPerformed(ActionEvent e) {
 			moveLines(true);
 		}
 	};
 
 	public static final AbstractAction MOVE_DOWN = new AbstractAction() {
-		@Override
 		public void actionPerformed(ActionEvent e) {
 			moveLines(false);
 		}
@@ -168,12 +163,5 @@ public class ToolTextArea implements RegistrableActions, ToolConstants {
 			editor.setSelection(newSelectionStart, newSelectionEnd);
 		}
 		editor.stopCompoundEdit();
-
-	}
-
-	public static void println(Object... objects) {
-		for (Object o : objects) {
-			System.out.println(o.toString());
-		}
 	}
 }
