@@ -17,7 +17,7 @@ public class ToolInputHandler extends PdeInputHandler implements ToolConstants {
 		super(editor);
 
 		ToolTextArea.init(editor);
-		ToolEditor.init(editor);
+		JavaModeInputs.init(editor);
 		BracketCloser.init(editor);
 
 		addKeyBinding("AS+UP", ToolTextArea.DUPLICATE_UP);
@@ -30,9 +30,9 @@ public class ToolInputHandler extends PdeInputHandler implements ToolConstants {
 		addKeyBinding("C+E", ToolTextArea.DELETE_LINE);
 		addKeyBinding("CS+E", "delete-line-content", ToolTextArea.DELETE_LINE_CONTENT);
 
-		addKeyBinding("ENTER", ToolEditor.HANDLE_ENTER);
-		addKeyBinding("CA+RIGHT", ToolEditor.SELECT_BLOCK);
-		addKeyBinding("C+T", "format-selected-text", ToolEditor.FORMAT_SELECTED_TEXT);
+		addKeyBinding("ENTER", JavaModeInputs.HANDLE_ENTER);
+		addKeyBinding("CA+RIGHT", JavaModeInputs.SELECT_BLOCK);
+		addKeyBinding("C+T", "format-selected-text", JavaModeInputs.FORMAT_SELECTED_TEXT);
 	}
 
 	public void addKeyBinding(String keyBinding, String actionName, AbstractAction action) {
