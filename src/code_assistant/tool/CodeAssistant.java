@@ -45,8 +45,8 @@ public class CodeAssistant implements Tool {
 		Editor editor = base.getActiveEditor();
 
 		CodeAssistantInputHandler inputHandler = new CodeAssistantInputHandler(editor, 
-				new JavaModeInputs(editor),
-				new BracketCloser(editor));
+				new JavaModeInputs(editor));
+				//new BracketCloser(editor));
 
 		editor.getTextArea().setInputHandler(inputHandler);
 

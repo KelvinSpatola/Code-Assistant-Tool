@@ -74,49 +74,44 @@ public final class EditorUtil implements ToolConstants {
 
 		return caretOffset - lineStartOffset;
 	}
-	
-//	static public int getContextIndentation(int offset) {
-//		return -1;
-//	}
 
-	/**
-	 * Walk back from 'index' until the brace that seems to be the beginning of the
-	 * current block, and return the number of spaces found on that line.
-	 */
-	static public int calcBraceIndent(int index, char[] contents) {
-		// now that we know things are ok to be indented, walk
-		// backwards to the last { to see how far its line is indented.
-		// this isn't perfect cuz it'll pick up commented areas,
-		// but that's not really a big deal and can be fixed when
-		// this is all given a more complete (proper) solution.
-		int braceDepth = 1;
-		boolean finished = false;
-		while ((index != -1) && (!finished)) {
-			if (contents[index] == '}') {
-				// aww crap, this means we're one deeper
-				// and will have to find one more extra {
-				braceDepth++;
-				// if (braceDepth == 0) {
-				// finished = true;
-				// }
-				index--;
-			} else if (contents[index] == '{') {
-				braceDepth--;
-				if (braceDepth == 0) {
-					finished = true;
-				}
-				index--;
+	static public int getMatchingBraceLine() {
+		int lineIndex = editor.getTextArea().getCaretLine() - 1;
+		int blockDepth = 1;
+
+		while (lineIndex >= 0) {
+			String lineText = editor.getLineText(lineIndex);
+
+			if (lineText.matches(BLOCK_CLOSING)) {
+				blockDepth++;
+				lineIndex--;
+
+			} else if (lineText.matches(BLOCK_OPENING)) {
+				blockDepth--;
+
+				if (blockDepth == 0)
+					return lineIndex;
+
+				lineIndex--;
+
 			} else {
-				index--;
+				lineIndex--;
 			}
 		}
-		// never found a proper brace, be safe and don't do anything
-		if (!finished)
-			return -1;
+		return -1;
+	}
 
-		// check how many spaces on the line with the matching open brace
-		// return calcSpaceCount(index, contents);
-		return getLineIndentationOfOffset(index);
+	static public int getOffsetOfPrevious(char ch) {
+		char[] code = editor.getText().toCharArray();
+		int index = editor.getCaretOffset();
+
+		while (index >= 0) {
+			if (code[index] == ch) {
+				return index;
+			}
+			index--;
+		}
+		return -1;
 	}
 
 	/**
@@ -124,37 +119,19 @@ public final class EditorUtil implements ToolConstants {
 	 * 
 	 * @return the previous non-white character
 	 */
-	static public char prevChar(int index) {		
+	static public char prevChar(int index) {
 		char[] code = editor.getText().toCharArray();
-		
-		while (index >= 0) {    
-			if(!Character.isWhitespace(code[index])) {
+
+		while (index >= 0) {
+			if (!Character.isWhitespace(code[index])) {
 				return code[index];
 			}
 			index--;
 		}
 		return Character.UNASSIGNED;
 	}
-	
-	static public char prevChar() {		
+
+	static public char prevChar() {
 		return prevChar(editor.getCaretOffset() - 1);
 	}
-
-	/**
-	 * Returns the next non-white character
-	 * 
-	 * @return the next non-white character
-	 */
-//	static public char nextChar() {		
-//		char[] code = editor.getText().toCharArray();
-//		int index = editor.getCaretOffset() + 1;
-//		
-//		while (index < code.length) {    
-//			if(!Character.isWhitespace(code[index])) {
-//				return code[index];
-//			}
-//			index++;
-//		}
-//		return Character.UNASSIGNED;
-//	}
 }

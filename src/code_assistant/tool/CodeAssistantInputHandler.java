@@ -38,8 +38,6 @@ public class CodeAssistantInputHandler extends PdeInputHandler {
 			String keyBinding = actionMap.getKey();
 			AbstractAction action = actionMap.getValue();
 			addKeyBinding(keyBinding, action);
-			
-			System.out.println(keyBinding + " -> " + action.getClass().getName());
 		}
 	}
 

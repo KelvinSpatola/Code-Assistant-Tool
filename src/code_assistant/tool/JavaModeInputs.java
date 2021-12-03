@@ -22,8 +22,8 @@ public class JavaModeInputs implements KeyHandler, ToolConstants {
 		actions.put("ENTER", HANDLE_ENTER);
 		actions.put("CA+RIGHT", SELECT_BLOCK);
 
-		CodeAssistantInputHandler.addKeyBinding(editor, "C+T",
-				"format-selected-text", JavaModeInputs.FORMAT_SELECTED_TEXT);
+		CodeAssistantInputHandler.addKeyBinding(editor, "C+T", "format-selected-text",
+				JavaModeInputs.FORMAT_SELECTED_TEXT);
 	}
 
 	static public final AbstractAction FORMAT_SELECTED_TEXT = new AbstractAction() {
@@ -342,46 +342,33 @@ public class JavaModeInputs implements KeyHandler, ToolConstants {
 	@Override
 	public boolean handlePressed(KeyEvent e) {
 		if (e.getKeyChar() == '}') {
-			char[] contents = editor.getText().toCharArray();
-
 			if (Preferences.getBoolean("editor.indent")) {
-				if (editor.isSelectionActive())
+				editor.startCompoundEdit();
+
+				// erase any selection content
+				if (editor.isSelectionActive()) {
 					editor.setSelectedText("");
-
-				// if this brace is the only thing on the line, outdent
-				// index to the character to the left of the caret
-				int prevCharIndex = editor.getCaretOffset() - 1;
-
-				// backup from the current caret position to the last newline,
-				// checking for anything besides whitespace along the way.
-				// if there's something besides whitespace, exit without
-				// messing any sort of indenting.
-				int index = prevCharIndex;
-				boolean finished = false;
-
-				while ((index != -1) && (!finished)) {
-					if (contents[index] == 10) {
-						finished = true;
-						index++;
-					} else if (contents[index] != ' ') {
-						// don't do anything, this line has other stuff on it
-						return false;
-					} else {
-						index--;
-					}
 				}
-				if (!finished)
-					return false; // brace with no start
 
-				int lineStartIndex = index;
+				int line = editor.getTextArea().getCaretLine();
 
-				int pairedSpaceCount = EditorUtil.calcBraceIndent(prevCharIndex, contents); // , 1);
-
-				if (pairedSpaceCount == -1)
+				// don't do anything, this line has other stuff on it
+				if (!editor.getLineText(line).isBlank()) {
 					return false;
+				}
 
-				editor.getTextArea().setSelectionStart(lineStartIndex);
-				editor.setSelectedText(EditorUtil.addSpaces(pairedSpaceCount));
+				int matchingBraceLine = EditorUtil.getMatchingBraceLine();
+
+				// no open brace found
+				if (matchingBraceLine == -1) {
+					return false;
+				}
+
+				int indent = EditorUtil.getLineIndentation(matchingBraceLine);
+
+				editor.setSelection(editor.getLineStartOffset(line), editor.getCaretOffset());
+				editor.setSelectedText(EditorUtil.addSpaces(indent));
+				editor.stopCompoundEdit();
 
 				return true;
 			}
