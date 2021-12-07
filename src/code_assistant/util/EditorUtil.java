@@ -75,8 +75,11 @@ public final class EditorUtil implements ToolConstants {
 		return getMatchingBraceLine(editor.getTextArea().getCaretLine(), goUp);
 	}
 
-	static public int getMatchingBraceLine(int currentLine, boolean goUp) {
-		int lineIndex = currentLine;
+	static public int getMatchingBraceLine(int lineIndex, boolean goUp) {
+		if (lineIndex < 0) {
+			return -1;
+		}
+		
 		int blockDepth = 1;
 
 		if (goUp) {

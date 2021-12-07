@@ -240,16 +240,6 @@ public class JavaModeInputs implements KeyHandler, ToolConstants {
 			}
 			
 			Selection s = new Selection(editor);
-			int selectionStart = s.getStart();
-			int selectionEnd = s.getEnd();
-			
-			if (s.getEndLine() == editor.getLineCount() - 1) {
-				selectionEnd--;
-			}
-
-			String code = editor.getText();
-			String textBeforeSelection = code.substring(0, selectionStart);
-			String textAfterSelection = code.substring(selectionEnd + 1);
 
 			String selectedText = s.getText();
 			String formattedText = editor.createFormatter().format(selectedText);
@@ -267,11 +257,17 @@ public class JavaModeInputs implements KeyHandler, ToolConstants {
 				editor.statusNotice(Language.text("editor.status.autoformat.no_changes"));
 
 			} else {
+				int start = s.getStart();
+				int end = s.getEnd() + 1;
+				
 				editor.startCompoundEdit();
-				editor.setText(textBeforeSelection + formattedText + textAfterSelection);
-
-				selectionEnd = selectionStart + formattedText.length() - 1;
-				editor.setSelection(selectionStart, selectionEnd);
+				
+				editor.setSelection(start, end);
+				editor.setSelectedText(formattedText);
+				
+				end = start + formattedText.length() - 1;
+				editor.setSelection(start, end);
+				
 				editor.stopCompoundEdit();
 
 				editor.getSketch().setModified(true);
