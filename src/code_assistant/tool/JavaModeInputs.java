@@ -248,9 +248,14 @@ public class JavaModeInputs implements KeyHandler, ToolConstants {
 			String textAfterSelection = code.substring(selectionEnd + 1);
 
 			String selectedText = s.getText();
-			final String formattedText = editor.createFormatter().format(selectedText);
+			String formattedText = editor.createFormatter().format(selectedText);
+			
+			int brace = EditorUtil.getMatchingBraceLine(s.getStartLine() - 1, true);
+			int indent = EditorUtil.getLineIndentation(brace) + TAB_SIZE;
+			
+			formattedText = EditorUtil.indentText(formattedText, indent);
 
-			if (formattedText.equals(selectedText)) {
+			if (selectedText.equals(formattedText.stripTrailing())) {
 				editor.statusNotice(Language.text("editor.status.autoformat.no_changes"));
 
 			} else {
@@ -269,74 +274,51 @@ public class JavaModeInputs implements KeyHandler, ToolConstants {
 		}
 	}
 
-	static private int blockDepth = 0;
-
 	static private void selectBlockOfCode() {
 		final char OPEN_BRACE = '{';
 		final char CLOSE_BRACE = '}';
-
-		int caretPos = editor.getCaretOffset();
-		String code = editor.getText();
-
-		int start = caretPos;
-		int end = caretPos;
-
+				
+		int start = editor.getSelectionStart();
+		int end = editor.getSelectionStop();
+		
+		Selection s = new Selection(editor);
+		
+		int startLine = s.getStartLine();
+		int endLine = s.getEndLine();
+		
 		if (editor.isSelectionActive()) {
-			start = editor.getSelectionStart() - 1;
-			end = editor.getSelectionStop();
+			String code = editor.getText();
 
-			if (code.charAt(start) == OPEN_BRACE && code.charAt(end) == CLOSE_BRACE) {
-				start--;
-				end++;
+			if (code.charAt(start - 1) == OPEN_BRACE && code.charAt(end) == CLOSE_BRACE) {
+				startLine--;
+				endLine++;
 			}
-		} else {
-			blockDepth = 0;
+		}
+		
+		// go up and search for the corresponding open brace
+		int matchingLine = EditorUtil.getMatchingBraceLine(startLine, true);
+
+		// open brace not found
+		if (matchingLine == -1) {
+			return;
 		}
 
-		short skipOpen = 0;
-		short skipClose = 0;
+		int lineEnd = editor.getLineStopOffset(matchingLine) - 1;
+		start = EditorUtil.getOffsetOfPrevious(OPEN_BRACE, lineEnd) + 1;
+		
+		
+		// now go down and search for the corresponding close brace
+		matchingLine = EditorUtil.getMatchingBraceLine(endLine, false);
 
-		if (caretPos >= 0 && caretPos < code.length()) {
-			boolean foundBrace = false;
-
-			// searching for the opening bracket...
-			while (!foundBrace) {
-				if (start < 0)
-					return;
-
-				char ch = code.charAt(start);
-
-				if (ch == OPEN_BRACE) {
-					foundBrace = true;
-				} else {
-					if (ch == CLOSE_BRACE)
-						skipClose++;
-
-					start--;
-				}
-			}
-
-			foundBrace = false;
-
-			// searching for the closing bracket...
-			while (!foundBrace /* && skipClose == 0 */) {
-				if (end > code.length() - 1)
-					return;
-
-				char ch = code.charAt(start);
-
-				if (ch == CLOSE_BRACE) {
-					foundBrace = true;
-					blockDepth++;
-					// System.out.println("block depth: " + blockDepth);
-
-				} else {
-					end++;
-				}
-			}
-
-			editor.setSelection(++start, end);
+		// close brace not found
+		if (matchingLine == -1) {
+			return;
 		}
+
+		lineEnd = editor.getLineStopOffset(matchingLine) - 1;
+		end = EditorUtil.getOffsetOfPrevious(CLOSE_BRACE, lineEnd);
+
+		editor.setSelection(start, end);
 	}
 
 	@Override
@@ -354,22 +336,24 @@ public class JavaModeInputs implements KeyHandler, ToolConstants {
 
 				// don't do anything, this line has other stuff on it
 				if (!editor.getLineText(line).isBlank()) {
+					editor.stopCompoundEdit();
 					return false;
 				}
 
-				int matchingBraceLine = EditorUtil.getMatchingBraceLine();
+				int startBrace = EditorUtil.getMatchingBraceLine(true);
 
 				// no open brace found
-				if (matchingBraceLine == -1) {
+				if (startBrace == -1) {
+					editor.stopCompoundEdit();
 					return false;
 				}
 
-				int indent = EditorUtil.getLineIndentation(matchingBraceLine);
+				int indent = EditorUtil.getLineIndentation(startBrace);
 
 				editor.setSelection(editor.getLineStartOffset(line), editor.getCaretOffset());
 				editor.setSelectedText(EditorUtil.addSpaces(indent));
-				editor.stopCompoundEdit();
 
+				editor.stopCompoundEdit();
 				return true;
 			}
 		}

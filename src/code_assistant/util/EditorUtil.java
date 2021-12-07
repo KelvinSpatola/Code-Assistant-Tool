@@ -34,16 +34,12 @@ public final class EditorUtil implements ToolConstants {
 		return result;
 	}
 
-	static public String indentText(String text) {
+	static public String indentText(String text, int indent) {
 		String[] lines = text.split(NL);
 		StringBuffer sb = new StringBuffer();
 
 		for (int i = 0; i < lines.length; i++) {
-			String str = addSpaces(TAB_SIZE).concat(lines[i]);
-			if (i == lines.length - 1)
-				sb.append(str);
-			else
-				sb.append(addSpaces(4).concat(lines[i]).concat(NL));
+			sb.append(addSpaces(indent).concat(lines[i]).concat(NL));
 		}
 		return sb.toString();
 	}
@@ -75,41 +71,80 @@ public final class EditorUtil implements ToolConstants {
 		return caretOffset - lineStartOffset;
 	}
 
-	static public int getMatchingBraceLine() {
-		int lineIndex = editor.getTextArea().getCaretLine() - 1;
+	static public int getMatchingBraceLine(boolean goUp) {
+		return getMatchingBraceLine(editor.getTextArea().getCaretLine(), goUp);
+	}
+
+	static public int getMatchingBraceLine(int currentLine, boolean goUp) {
+		int lineIndex = currentLine;
 		int blockDepth = 1;
 
-		while (lineIndex >= 0) {
-			String lineText = editor.getLineText(lineIndex);
+		if (goUp) {
 
-			if (lineText.matches(BLOCK_CLOSING)) {
-				blockDepth++;
+			if (editor.getLineText(lineIndex).matches(BLOCK_CLOSING)) {
 				lineIndex--;
+			}
 
-			} else if (lineText.matches(BLOCK_OPENING)) {
-				blockDepth--;
+			while (lineIndex >= 0) {
+				String lineText = editor.getLineText(lineIndex);
 
-				if (blockDepth == 0)
-					return lineIndex;
+				if (lineText.matches(BLOCK_CLOSING)) {
+					blockDepth++;
+					lineIndex--;
 
-				lineIndex--;
+				} else if (lineText.matches(BLOCK_OPENING)) {
+					blockDepth--;
 
-			} else {
-				lineIndex--;
+					if (blockDepth == 0)
+						return lineIndex;
+
+					lineIndex--;
+
+				} else {
+					lineIndex--;
+				}
+			}
+		} else { // go down
+
+			if (editor.getLineText(lineIndex).matches(BLOCK_OPENING)) {
+				lineIndex++;
+			}
+
+			while (lineIndex < editor.getLineCount()) {
+				String lineText = editor.getLineText(lineIndex);
+
+				if (lineText.matches(BLOCK_OPENING)) {
+					blockDepth++;
+					lineIndex++;
+
+				} else if (lineText.matches(BLOCK_CLOSING)) {
+					blockDepth--;
+
+					if (blockDepth == 0)
+						return lineIndex;
+
+					lineIndex++;
+
+				} else {
+					lineIndex++;
+				}
 			}
 		}
 		return -1;
 	}
 
 	static public int getOffsetOfPrevious(char ch) {
-		char[] code = editor.getText().toCharArray();
-		int index = editor.getCaretOffset();
+		return getOffsetOfPrevious(ch, editor.getCaretOffset());
+	}
 
-		while (index >= 0) {
-			if (code[index] == ch) {
-				return index;
+	static public int getOffsetOfPrevious(char ch, int offset) {
+		char[] code = editor.getText(0, offset + 1).toCharArray();
+
+		while (offset >= 0) {
+			if (code[offset] == ch) {
+				return offset;
 			}
-			index--;
+			offset--;
 		}
 		return -1;
 	}
