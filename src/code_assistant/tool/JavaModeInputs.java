@@ -235,10 +235,14 @@ public class JavaModeInputs implements KeyHandler, ToolConstants {
 	static private void formatSelectedText() {
 		if (editor.isSelectionActive()) {
 
+			if (editor.getSelectedText().isBlank()) {
+				return;
+			}
+			
 			Selection s = new Selection(editor);
 			int selectionStart = s.getStart();
 			int selectionEnd = s.getEnd();
-
+			
 			if (s.getEndLine() == editor.getLineCount() - 1) {
 				selectionEnd--;
 			}
@@ -249,10 +253,14 @@ public class JavaModeInputs implements KeyHandler, ToolConstants {
 
 			String selectedText = s.getText();
 			String formattedText = editor.createFormatter().format(selectedText);
-			
+
 			int brace = EditorUtil.getMatchingBraceLine(s.getStartLine() - 1, true);
-			int indent = EditorUtil.getLineIndentation(brace) + TAB_SIZE;
+			int indent = 0;
 			
+			if (brace != -1) {
+				indent = EditorUtil.getLineIndentation(brace) + TAB_SIZE;
+			}
+
 			formattedText = EditorUtil.indentText(formattedText, indent);
 
 			if (selectedText.equals(formattedText.stripTrailing())) {
@@ -277,15 +285,15 @@ public class JavaModeInputs implements KeyHandler, ToolConstants {
 	static private void selectBlockOfCode() {
 		final char OPEN_BRACE = '{';
 		final char CLOSE_BRACE = '}';
-				
+
 		int start = editor.getSelectionStart();
 		int end = editor.getSelectionStop();
-		
+
 		Selection s = new Selection(editor);
-		
+
 		int startLine = s.getStartLine();
 		int endLine = s.getEndLine();
-		
+
 		if (editor.isSelectionActive()) {
 			String code = editor.getText();
 
@@ -294,7 +302,7 @@ public class JavaModeInputs implements KeyHandler, ToolConstants {
 				endLine++;
 			}
 		}
-		
+
 		// go up and search for the corresponding open brace
 		int matchingLine = EditorUtil.getMatchingBraceLine(startLine, true);
 
@@ -305,8 +313,7 @@ public class JavaModeInputs implements KeyHandler, ToolConstants {
 
 		int lineEnd = editor.getLineStopOffset(matchingLine) - 1;
 		start = EditorUtil.getOffsetOfPrevious(OPEN_BRACE, lineEnd) + 1;
-		
-		
+
 		// now go down and search for the corresponding close brace
 		matchingLine = EditorUtil.getMatchingBraceLine(endLine, false);
 
