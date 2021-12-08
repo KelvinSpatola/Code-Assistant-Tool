@@ -25,6 +25,7 @@
 
 package code_assistant.tool;
 
+import code_assistant.util.ToolPreferences;
 import processing.app.Base;
 import processing.app.tools.Tool;
 import processing.app.ui.Editor;
@@ -38,7 +39,8 @@ public class CodeAssistant implements Tool {
 	}
 
 	public void init(Base base) {
-		this.base = base;
+		this.base = base;	
+		ToolPreferences.init();
 	}
 
 	public void run() {

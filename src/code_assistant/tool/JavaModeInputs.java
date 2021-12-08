@@ -39,74 +39,112 @@ public class JavaModeInputs implements KeyHandler, ToolConstants {
 	};
 
 	static public final AbstractAction HANDLE_ENTER = new AbstractAction() {
-		@Override
 		public void actionPerformed(ActionEvent e) {
-
-			int caretLine = editor.getTextArea().getCaretLine();
-			String lineText = editor.getLineText(caretLine);
-
-			boolean matches_a_string = lineText.matches(STRING_TEXT);
-			boolean matches_a_comment = lineText.matches(COMMENT_TEXT);
-
-			// if it's neither a string nor a comment
-			if (!matches_a_string && !matches_a_comment) {
-
-//				if (lineText.matches("^.*?\\{\\s*\\}?\\h*$")) {
-//					editor.startCompoundEdit();
-//					editor.insertText("\n" + Util.addSpaces(Util.getLineIndentation(caretLine) + TAB));
-//					int newCaret = editor.getCaretOffset();
-//
-//					editor.insertText("\n" + Util.addSpaces(Util.getLineIndentation(caretLine)));
-//					editor.setSelection(newCaret, newCaret);
-//					editor.stopCompoundEdit();
-//				} else {
-//					insertNewLineBellowCurrentLine(caretLine);
-//				}
-				// insertNewLineBellowCurrentLine(caretLine); <------
-
-				handleNewLine();
-				return;
-			}
-
-			int stringStart = lineText.indexOf("\"");
-			int stringStop = lineText.lastIndexOf("\"") + 1;
-			int commentStart = lineText.indexOf("/*");
-			int commentStop = (lineText.contains("*/") ? lineText.indexOf("*/") : lineText.length()) + 2;
-
-			int caretPos = EditorUtil.caretPositionInsideLine();
-			boolean isString = matches_a_string && (caretPos > stringStart && caretPos < stringStop);
-			boolean isComment = matches_a_comment && (caretPos > commentStart && caretPos < commentStop);
-
-			/*
-			 * We gotta check if this line starts with a "*" that doesn't come from a
-			 * comment. The only way to do this is by checking if the previous line of text
-			 * is a comment line.
-			 */
-			if (isComment && !lineText.contains("/*")) {
-				String prevLine = editor.getLineText(caretLine - 1);
-
-				if (!prevLine.matches(COMMENT_TEXT) || prevLine.contains("*/")) {
-					isComment = false;
-				}
-			}
-
-			// finally ...
-
-			if (isString)
-				splitString(caretLine);
-
-			else if (isComment)
-				splitComment(caretLine);
-
-			else
-				// insertNewLineBellowCurrentLine(caretLine);
-				handleNewLine();
+			handleEnter();
 		}
 	};
 
 	/*
 	 * ******** METHODS ********
 	 */
+
+	static private void handleEnter() {
+		int caretLine = editor.getTextArea().getCaretLine();
+		String lineText = editor.getLineText(caretLine);
+
+		boolean matches_a_string = lineText.matches(STRING_TEXT);
+		boolean matches_a_comment = lineText.matches(COMMENT_TEXT);
+
+		// if it's neither a string nor a comment
+		if (!matches_a_string && !matches_a_comment) {
+
+//			if (lineText.matches("^.*?\\{\\s*\\}?\\h*$")) {
+//				editor.startCompoundEdit();
+//				editor.insertText("\n" + Util.addSpaces(Util.getLineIndentation(caretLine) + TAB));
+//				int newCaret = editor.getCaretOffset();
+//
+//				editor.insertText("\n" + Util.addSpaces(Util.getLineIndentation(caretLine)));
+//				editor.setSelection(newCaret, newCaret);
+//				editor.stopCompoundEdit();
+//			} else {
+//				insertNewLineBellowCurrentLine(caretLine);
+//			}
+
+			handleNewLine();
+			return;
+		}
+
+		int stringStart = lineText.indexOf("\"");
+		int stringStop = lineText.lastIndexOf("\"") + 1;
+		int commentStart = lineText.indexOf("/*");
+		int commentStop = (lineText.contains("*/") ? lineText.indexOf("*/") : lineText.length()) + 2;
+
+		int caretPos = EditorUtil.caretPositionInsideLine();
+		boolean isString = matches_a_string && (caretPos > stringStart && caretPos < stringStop);
+		boolean isComment = matches_a_comment && (caretPos > commentStart && caretPos < commentStop);
+
+		/*
+		 * We gotta check if this line starts with a "*" that doesn't come from a
+		 * comment. The only way to do this is by checking if the previous line of text
+		 * is a comment line.
+		 */
+		if (isComment && !lineText.contains("/*")) {
+			String prevLine = editor.getLineText(caretLine - 1);
+
+			if (!prevLine.matches(COMMENT_TEXT) || prevLine.contains("*/")) {
+				isComment = false;
+			}
+		}
+
+		// finally ...
+
+		if (isString)
+			splitString(caretLine);
+
+		else if (isComment)
+			splitComment(caretLine);
+
+		else
+			handleNewLine();
+	}
+
+	static private void splitString(int caretLine) {
+		int indent = EditorUtil.getLineIndentation(caretLine);
+		if (!editor.getLineText(caretLine).matches(SPLIT_STRING_TEXT))
+			indent += TAB_SIZE;
+
+		editor.stopCompoundEdit();
+		editor.insertText("\"\n" + EditorUtil.addSpaces(indent) + "+ \"");
+		editor.stopCompoundEdit();
+	}
+
+	static private void splitComment(int caretLine) {
+		int indent = EditorUtil.getLineIndentation(caretLine);
+
+		editor.startCompoundEdit();
+		editor.insertText(NL + EditorUtil.addSpaces(indent - (indent % TAB_SIZE)) + " * ");
+
+		int caretPos = editor.getCaretOffset();
+		String nextText = editor.getText().substring(caretPos);
+
+		/*
+		 * Checking if we need to close this comment
+		 */
+		int openingToken = nextText.indexOf("/*");
+		int closingToken = nextText.indexOf("*/");
+		boolean commentIsOpen = (closingToken == -1) || (closingToken > openingToken && openingToken != -1);
+
+		if (commentIsOpen) {
+			editor.getTextArea().setCaretPosition(editor.getLineStopOffset(++caretLine) - 1);
+			editor.insertText(NL + EditorUtil.addSpaces(indent - (indent % TAB_SIZE)) + " */");
+			editor.getTextArea().setCaretPosition(caretPos);
+		}
+		editor.stopCompoundEdit();
+	}
+
+	static private void createBlockScope() {
+
+	}
 
 	static private void handleNewLine() {
 		char[] code = editor.getText().toCharArray();
@@ -198,86 +236,6 @@ public class JavaModeInputs implements KeyHandler, ToolConstants {
 		}
 	}
 
-	static private void splitString(int caretLine) {
-		int indent = EditorUtil.getLineIndentation(caretLine);
-		if (!editor.getLineText(caretLine).matches(SPLIT_STRING_TEXT))
-			indent += TAB_SIZE;
-
-		editor.stopCompoundEdit();
-		editor.insertText("\"\n" + EditorUtil.addSpaces(indent) + "+ \"");
-		editor.stopCompoundEdit();
-	}
-
-	static private void splitComment(int caretLine) {
-		int indent = EditorUtil.getLineIndentation(caretLine);
-
-		editor.startCompoundEdit();
-		editor.insertText(NL + EditorUtil.addSpaces(indent - (indent % TAB_SIZE)) + " * ");
-
-		int caretPos = editor.getCaretOffset();
-		String nextText = editor.getText().substring(caretPos); // .replace('\n', ' ');
-
-		/*
-		 * Checking if we need to close this comment
-		 */
-		int openingToken = nextText.indexOf("/*");
-		int closingToken = nextText.indexOf("*/");
-		boolean commentIsOpen = (closingToken == -1) || (closingToken > openingToken && openingToken != -1);
-
-		if (commentIsOpen) {
-			editor.getTextArea().setCaretPosition(editor.getLineStopOffset(++caretLine) - 1);
-			editor.insertText(NL + EditorUtil.addSpaces(indent - (indent % TAB_SIZE)) + " */");
-			editor.getTextArea().setCaretPosition(caretPos);
-		}
-		editor.stopCompoundEdit();
-	}
-
-	static private void formatSelectedText() {
-		if (editor.isSelectionActive()) {
-
-			if (editor.getSelectedText().isBlank()) {
-				return;
-			}
-			
-			Selection s = new Selection(editor);
-
-			String selectedText = s.getText();
-			String formattedText = editor.createFormatter().format(selectedText);
-
-			int brace = EditorUtil.getMatchingBraceLine(s.getStartLine() - 1, true);
-			int indent = 0;
-			
-			if (brace != -1) {
-				indent = EditorUtil.getLineIndentation(brace) + TAB_SIZE;
-			}
-
-			formattedText = EditorUtil.indentText(formattedText, indent);
-
-			if (selectedText.equals(formattedText.stripTrailing())) {
-				editor.statusNotice(Language.text("editor.status.autoformat.no_changes"));
-
-			} else {
-				int start = s.getStart();
-				int end = s.getEnd() + 1;
-				
-				editor.startCompoundEdit();
-				
-				editor.setSelection(start, end);
-				editor.setSelectedText(formattedText);
-				
-				end = start + formattedText.length() - 1;
-				editor.setSelection(start, end);
-				
-				editor.stopCompoundEdit();
-
-				editor.getSketch().setModified(true);
-				editor.statusNotice(Language.text("editor.status.autoformat.finished"));
-			}
-		} else {
-			editor.handleAutoFormat();
-		}
-	}
-
 	static private void selectBlockOfCode() {
 		final char OPEN_BRACE = '{';
 		final char CLOSE_BRACE = '}';
@@ -323,6 +281,97 @@ public class JavaModeInputs implements KeyHandler, ToolConstants {
 
 		editor.setSelection(start, end);
 	}
+	
+	static private void formatSelectedText() {
+		if (editor.isSelectionActive()) {
+
+			if (editor.getSelectedText().isBlank()) {
+				return;
+			}
+
+			Selection s = new Selection(editor);
+
+			String selectedText = s.getText();
+			//String selectedText = checkStringLiterals(s);
+			
+			String formattedText = editor.createFormatter().format(selectedText); // all miracle happens here
+
+			// but the miracle needs to be indented, anyway...
+			int brace = EditorUtil.getMatchingBraceLine(s.getStartLine() - 1, true);
+			int indent = 0;
+
+			if (brace != -1) {
+				indent = EditorUtil.getLineIndentation(brace) + TAB_SIZE;
+			}
+
+			formattedText = EditorUtil.indentText(formattedText, indent);
+
+			if (selectedText.equals(formattedText.stripTrailing())) {
+				editor.statusNotice(Language.text("editor.status.autoformat.no_changes"));
+
+			} else {
+				int start = s.getStart();
+				int end = s.getEnd() + 1;
+
+				editor.startCompoundEdit();
+
+				editor.setSelection(start, end);
+				editor.setSelectedText(formattedText);
+
+				end = start + formattedText.length() - 1;
+				editor.setSelection(start, end);
+
+				editor.stopCompoundEdit();
+
+				editor.getSketch().setModified(true);
+				editor.statusNotice(Language.text("editor.status.autoformat.finished"));
+			}
+		} else {
+			final int LINE_LENGTH = 80;
+			int caretOrigin = editor.getCaretOffset();
+
+			for (int line = 0; line < editor.getLineCount(); line++) {
+				String lineText = editor.getLineText(line);
+
+				if (lineText.matches(STRING_TEXT) && lineText.length() > LINE_LENGTH) {
+					int newCaretPos = editor.getLineStartOffset(line) + LINE_LENGTH - 1;
+					editor.setSelection(newCaretPos, newCaretPos);
+
+					splitString(line);
+				}
+			}
+			
+			editor.setSelection(caretOrigin, caretOrigin);
+
+			editor.handleAutoFormat();
+		}
+	}
+	
+	static private String checkStringLiterals(Selection s) {
+		int startLine = 0;
+		int endLine = editor.getLineCount() - 1;
+		
+		if(s != null) {
+			startLine = s.getStartLine();
+			endLine = s.getEndLine();
+		}
+		
+		final int LINE_LENGTH = 80;
+		String result = null;
+		
+		for (int i = startLine; i <= endLine; i++) {
+			String lineText = editor.getLineText(i);
+
+			if (lineText.matches(STRING_TEXT) && lineText.length() > LINE_LENGTH) {
+				
+				int newCaretPos = editor.getLineStartOffset(i) + LINE_LENGTH - 1;
+				editor.setSelection(newCaretPos, newCaretPos);
+
+				splitString(i);
+			}
+		}
+		return result;
+	}
 
 	@Override
 	public boolean handlePressed(KeyEvent e) {
@@ -345,7 +394,7 @@ public class JavaModeInputs implements KeyHandler, ToolConstants {
 
 				int startBrace = EditorUtil.getMatchingBraceLine(true);
 
-				// no open brace found
+				// open brace not found
 				if (startBrace == -1) {
 					editor.stopCompoundEdit();
 					return false;
