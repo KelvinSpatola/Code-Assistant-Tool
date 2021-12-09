@@ -7,10 +7,8 @@ public class Selection {
 	private int start, end, startLine, endLine;
 
 	public Selection(Editor editor) {
-		processing.app.syntax.JEditTextArea textarea = editor.getTextArea();
-
-		startLine = textarea.getSelectionStartLine();
-		endLine = textarea.getSelectionStopLine();
+		startLine = editor.getTextArea().getSelectionStartLine();
+		endLine = editor.getTextArea().getSelectionStopLine();
 
 		// in case this selection ends with the caret at the beginning of the last line,
 		// not selecting any text

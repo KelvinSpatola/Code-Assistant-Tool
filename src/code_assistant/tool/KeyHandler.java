@@ -14,5 +14,5 @@ public interface KeyHandler {
 	
 	static Map<String, AbstractAction> getActions() {
 		return actions;
-	}
+	} 
 }

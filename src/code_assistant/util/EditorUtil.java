@@ -1,37 +1,36 @@
 package code_assistant.util;
 
+import static code_assistant.util.Constants.*;
+
 import processing.app.ui.Editor;
 
-public final class EditorUtil implements ToolConstants {
-	static Editor editor;
+
+public final class EditorUtil {
+	static private final String BLOCK_OPENING = "^(?!.*?\\/+.*?\\{.*|.*\\/\\*.*|\\h*\\*.*).*?\\{.*";
+	static private final String BLOCK_CLOSING = "^(?!.*?\\/+.*?\\}.*|.*\\/\\*.*|\\h*\\*.*).*?\\}.*";
 
 	private EditorUtil() {
 	}
 
-	static public void init(Editor _editor) {
-		editor = _editor;
+	static public int getLineIndentation(String lineText) {
+		char[] chars = lineText.toCharArray();
+		int index = 0;
+
+		while (Character.isWhitespace(chars[index])) {
+			index++;
+		}
+		return index;
 	}
 
-	static public int getLineIndentation(int line) {
+	static public int getLineIndentation(Editor editor, int line) {
 		int start = editor.getLineStartOffset(line);
 		int end = editor.getTextArea().getLineStartNonWhiteSpaceOffset(line);
 		return end - start;
 	}
 
-	static public int getLineIndentationOfOffset(int offset) {
+	static public int getLineIndentationOfOffset(Editor editor, int offset) {
 		int line = editor.getTextArea().getLineOfOffset(offset);
-		return getLineIndentation(line);
-	}
-
-	static public int getSelectionIndentation(int startLine, int endLine) {
-		int result = getLineIndentation(startLine);
-
-		for (int line = startLine + 1; line <= endLine; line++) {
-			int currIndent = getLineIndentation(line);
-			if (currIndent < result)
-				result = currIndent;
-		}
-		return result;
+		return getLineIndentation(editor, line);
 	}
 
 	static public String indentText(String text, int indent) {
@@ -59,23 +58,23 @@ public final class EditorUtil implements ToolConstants {
 	}
 
 	static public String addSpaces(int length) {
-		if (length == 0)
+		if (length <= 0)
 			return "";
 		return String.format("%1$" + length + "s", "");
 	}
 
-	static public int caretPositionInsideLine() {
+	static public int caretPositionInsideLine(Editor editor) {
 		int caretOffset = editor.getCaretOffset();
 		int lineStartOffset = editor.getLineStartOffset(editor.getTextArea().getCaretLine());
 
 		return caretOffset - lineStartOffset;
 	}
 
-	static public int getMatchingBraceLine(boolean goUp) {
-		return getMatchingBraceLine(editor.getTextArea().getCaretLine(), goUp);
+	static public int getMatchingBraceLine(Editor editor, boolean goUp) {
+		return getMatchingBraceLine(editor, editor.getTextArea().getCaretLine(), goUp);
 	}
 
-	static public int getMatchingBraceLine(int lineIndex, boolean goUp) {
+	static public int getMatchingBraceLine(Editor editor, int lineIndex, boolean goUp) {
 		if (lineIndex < 0) {
 			return -1;
 		}
@@ -136,11 +135,11 @@ public final class EditorUtil implements ToolConstants {
 		return -1;
 	}
 
-	static public int getOffsetOfPrevious(char ch) {
-		return getOffsetOfPrevious(ch, editor.getCaretOffset());
+	static public int getOffsetOfPrevious(Editor editor, char ch) {
+		return getOffsetOfPrevious(editor, ch, editor.getCaretOffset());
 	}
 
-	static public int getOffsetOfPrevious(char ch, int offset) {
+	static public int getOffsetOfPrevious(Editor editor, char ch, int offset) {
 		char[] code = editor.getText(0, offset + 1).toCharArray();
 
 		while (offset >= 0) {
@@ -157,7 +156,7 @@ public final class EditorUtil implements ToolConstants {
 	 * 
 	 * @return the previous non-white character
 	 */
-	static public char prevChar(int index) {
+	static public char prevChar(Editor editor, int index) {
 		char[] code = editor.getText().toCharArray();
 
 		while (index >= 0) {
@@ -169,7 +168,7 @@ public final class EditorUtil implements ToolConstants {
 		return Character.UNASSIGNED;
 	}
 
-	static public char prevChar() {
-		return prevChar(editor.getCaretOffset() - 1);
+	static public char prevChar(Editor editor) {
+		return prevChar(editor, editor.getCaretOffset() - 1);
 	}
 }

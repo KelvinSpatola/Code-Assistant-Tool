@@ -1,21 +1,21 @@
 package code_assistant.tool;
 
+import static code_assistant.util.Constants.*;
+
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 
 import code_assistant.util.EditorUtil;
 import code_assistant.util.Selection;
-import code_assistant.util.ToolConstants;
 import processing.app.Preferences;
 import processing.app.ui.Editor;
 
-public class DefaultInputs implements ToolConstants {
+public class DefaultInputs {
 	static private Editor editor;
 
 	public static void init(Editor _editor) {
 		editor = _editor;
-		EditorUtil.init(editor);
 	}
 
 	public static final AbstractAction DELETE_LINE = new AbstractAction() {
@@ -25,7 +25,6 @@ public class DefaultInputs implements ToolConstants {
 	};
 
 	public static final AbstractAction DELETE_LINE_CONTENT = new AbstractAction() {
-		@Override
 		public void actionPerformed(ActionEvent e) {
 			deleteLineContent(editor.getTextArea().getCaretLine());
 		}
@@ -173,10 +172,10 @@ public class DefaultInputs implements ToolConstants {
 	}
 	
 	static private void insertNewLineBellow(int caretLine) {
-		int indent = EditorUtil.getLineIndentation(caretLine);
 		String lineText = editor.getLineText(caretLine);
+		int indent = EditorUtil.getLineIndentation(lineText);
 
-		if (lineText.contains("{") && (EditorUtil.caretPositionInsideLine() > lineText.indexOf("{")))
+		if (lineText.contains("{") && (EditorUtil.caretPositionInsideLine(editor) > lineText.indexOf("{")))
 			indent += TAB_SIZE;
 
 		int caretPos = editor.getCaretOffset();
