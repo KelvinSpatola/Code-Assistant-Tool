@@ -7,7 +7,7 @@ public final class Constants {
 	public static final String TAB = EditorUtil.addSpaces(TAB_SIZE);
 	public static final String NL = "\n";
 
-	
+
 	private Constants() {
 	}
 }

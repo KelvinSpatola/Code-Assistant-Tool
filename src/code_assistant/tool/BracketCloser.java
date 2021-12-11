@@ -18,9 +18,10 @@ public class BracketCloser implements KeyHandler {
 		editor = _editor;
 	}
 
+	@Override
 	public boolean handlePressed(KeyEvent e) {
 		int keyChar = e.getKeyChar();
-		
+
 		// loop through array of opening brackets to trigger completion
 		for (int i = 0; i < openingChar.length; i++) {
 			// if nothing is selected just add closing bracket, else wrap brackets around
@@ -32,7 +33,7 @@ public class BracketCloser implements KeyHandler {
 					removeClosingChar(i);
 			} else if (keyChar == openingChar[i] && editor.isSelectionActive())
 				addClosingChar(i, editor.getSelectionStart(), editor.getSelectionStop());
-		}		
+		}
 		return false;
 	}
 

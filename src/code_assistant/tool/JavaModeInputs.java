@@ -1,6 +1,8 @@
 package code_assistant.tool;
 
-import static code_assistant.util.Constants.*;
+import static code_assistant.util.Constants.NL;
+import static code_assistant.util.Constants.TAB;
+import static code_assistant.util.Constants.TAB_SIZE;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -21,11 +23,12 @@ public class JavaModeInputs implements KeyHandler {
 	static final String COMMENT_TEXT = "^(?!.*\\\".*\\/\\*.*\\\")(?:.*\\/\\*.*|\\h*\\*.*)";
 	static final String STRING_TEXT = "^(?!(.*?(\\*|\\/+).*?\\\".*\\\")).*(?:\\\".*){2}";
 	static final String SPLIT_STRING_TEXT = "^\\h*\\+\\s*(?:\\\".*){2}";
-	
+
 	static private Editor editor;
 
 	public JavaModeInputs(Editor _editor) {
 		editor = _editor;
+		EditorUtil.init(editor);
 
 		actions.put("ENTER", HANDLE_ENTER);
 		actions.put("CA+RIGHT", SELECT_BLOCK);
@@ -35,18 +38,21 @@ public class JavaModeInputs implements KeyHandler {
 	}
 
 	static public final AbstractAction FORMAT_SELECTED_TEXT = new AbstractAction() {
+		@Override
 		public void actionPerformed(ActionEvent e) {
 			formatSelectedText();
 		}
 	};
 
 	static public final AbstractAction SELECT_BLOCK = new AbstractAction() {
+		@Override
 		public void actionPerformed(ActionEvent e) {
 			selectBlockOfCode();
 		}
 	};
 
 	static public final AbstractAction HANDLE_ENTER = new AbstractAction() {
+		@Override
 		public void actionPerformed(ActionEvent e) {
 			handleEnter();
 		}
@@ -87,7 +93,7 @@ public class JavaModeInputs implements KeyHandler {
 		int commentStart = lineText.indexOf("/*");
 		int commentStop = (lineText.contains("*/") ? lineText.indexOf("*/") : lineText.length()) + 2;
 
-		int caretPos = EditorUtil.caretPositionInsideLine(editor);
+		int caretPos = EditorUtil.caretPositionInsideLine();
 		boolean isString = matches_a_string && (caretPos > stringStart && caretPos < stringStop);
 		boolean isComment = matches_a_comment && (caretPos > commentStart && caretPos < commentStop);
 
@@ -117,7 +123,7 @@ public class JavaModeInputs implements KeyHandler {
 	}
 
 	static private void splitString(int caretLine) {
-		int indent = EditorUtil.getLineIndentation(editor, caretLine);
+		int indent = EditorUtil.getLineIndentation(caretLine);
 		if (!editor.getLineText(caretLine).matches(SPLIT_STRING_TEXT))
 			indent += TAB_SIZE;
 
@@ -127,7 +133,7 @@ public class JavaModeInputs implements KeyHandler {
 	}
 
 	static private void splitComment(int caretLine) {
-		int indent = EditorUtil.getLineIndentation(editor, caretLine);
+		int indent = EditorUtil.getLineIndentation(caretLine);
 
 		editor.startCompoundEdit();
 		editor.insertText(NL + EditorUtil.addSpaces(indent - (indent % TAB_SIZE)) + " * ");
@@ -169,7 +175,7 @@ public class JavaModeInputs implements KeyHandler {
 
 			// calculate the amount of indent on the previous line
 			// this will be used *only if the prev line is not an indent*
-			int spaceCount = EditorUtil.getLineIndentationOfOffset(editor, caretPos - 1);
+			int spaceCount = EditorUtil.getLineIndentationOfOffset(caretPos - 1);
 
 			// Let's check if the last character is an open brace, then indent.
 			int index = caretPos - 1;
@@ -181,7 +187,7 @@ public class JavaModeInputs implements KeyHandler {
 				if (code[index] == '{') {
 					// intermediate lines be damned,
 					// use the indent for this line instead
-					spaceCount = EditorUtil.getLineIndentationOfOffset(editor, index);
+					spaceCount = EditorUtil.getLineIndentationOfOffset(index);
 					spaceCount += TAB_SIZE;
 				}
 			}
@@ -266,7 +272,7 @@ public class JavaModeInputs implements KeyHandler {
 		}
 
 		// go up and search for the corresponding open brace
-		int matchingLine = EditorUtil.getMatchingBraceLine(editor, startLine, true);
+		int matchingLine = EditorUtil.getMatchingBraceLine(startLine, true);
 
 		// open brace not found
 		if (matchingLine == -1) {
@@ -274,10 +280,10 @@ public class JavaModeInputs implements KeyHandler {
 		}
 
 		int lineEnd = editor.getLineStopOffset(matchingLine) - 1;
-		start = EditorUtil.getOffsetOfPrevious(editor, OPEN_BRACE, lineEnd) + 1;
+		start = EditorUtil.getOffsetOfPrevious(OPEN_BRACE, lineEnd) + 1;
 
 		// now go down and search for the corresponding close brace
-		matchingLine = EditorUtil.getMatchingBraceLine(editor, endLine, false);
+		matchingLine = EditorUtil.getMatchingBraceLine(endLine, false);
 
 		// close brace not found
 		if (matchingLine == -1) {
@@ -285,7 +291,7 @@ public class JavaModeInputs implements KeyHandler {
 		}
 
 		lineEnd = editor.getLineStopOffset(matchingLine) - 1;
-		end = EditorUtil.getOffsetOfPrevious(editor, CLOSE_BRACE, lineEnd);
+		end = EditorUtil.getOffsetOfPrevious(CLOSE_BRACE, lineEnd);
 
 		editor.setSelection(start, end);
 	}
@@ -300,23 +306,23 @@ public class JavaModeInputs implements KeyHandler {
 			Selection s = new Selection(editor);
 
 			String selectedText;
-			
+
 			 // long string literals are formatted here
 			if (Preferences.getBoolean("code_assistant.auto_format.strings")) {
 				selectedText = refactorStringLiterals(s.getText());
 			} else {
 				selectedText = s.getText();
 			}
-			
+
 			// and everything else is formatted here
 			String formattedText = editor.createFormatter().format(selectedText);
 
 			// but they need to be indented, anyway...
-			int brace = EditorUtil.getMatchingBraceLine(editor, s.getStartLine() - 1, true);
+			int brace = EditorUtil.getMatchingBraceLine(s.getStartLine() - 1, true);
 			int indent = 0;
 
 			if (brace != -1) {
-				indent = EditorUtil.getLineIndentation(editor, brace) + TAB_SIZE;
+				indent = EditorUtil.getLineIndentation(brace) + TAB_SIZE;
 			}
 
 			formattedText = EditorUtil.indentText(formattedText, indent);
@@ -356,16 +362,6 @@ public class JavaModeInputs implements KeyHandler {
 		}
 	}
 
-//	static int getIndentation(String lineText) {
-//		char[] chars = lineText.toCharArray();
-//		int index = 0;
-//
-//		while (Character.isWhitespace(chars[index])) {
-//			index++;
-//		}
-//		return index;
-//	}
-
 	static private String refactorStringLiterals(String text) {
 		int maxLength = Preferences.getInteger("code_assistant.auto_format.line_length");
 
@@ -381,7 +377,7 @@ public class JavaModeInputs implements KeyHandler {
 				if (depth == 0) {
 					indent = EditorUtil.getLineIndentation(lineText);
 				}
-				
+
 				String preffix = EditorUtil.addSpaces(indent) + TAB + "+ \"";
 
 				String currLine = lineText.substring(0, maxLength - 1) + "\"";
@@ -426,7 +422,7 @@ public class JavaModeInputs implements KeyHandler {
 					return false;
 				}
 
-				int startBrace = EditorUtil.getMatchingBraceLine(editor, true);
+				int startBrace = EditorUtil.getMatchingBraceLine(true);
 
 				// open brace not found
 				if (startBrace == -1) {
@@ -434,7 +430,7 @@ public class JavaModeInputs implements KeyHandler {
 					return false;
 				}
 
-				int indent = EditorUtil.getLineIndentation(editor, startBrace);
+				int indent = EditorUtil.getLineIndentation(startBrace);
 
 				editor.setSelection(editor.getLineStartOffset(line), editor.getCaretOffset());
 				editor.setSelectedText(EditorUtil.addSpaces(indent));

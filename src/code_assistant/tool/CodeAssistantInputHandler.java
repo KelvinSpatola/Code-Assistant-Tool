@@ -8,6 +8,7 @@ import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.KeyStroke;
 
+import code_assistant.util.EditorUtil;
 import processing.app.Platform;
 import processing.app.syntax.PdeInputHandler;
 import processing.app.ui.Editor;
@@ -18,6 +19,7 @@ public class CodeAssistantInputHandler extends PdeInputHandler {
 	// CONSTRUCTOR
 	public CodeAssistantInputHandler(Editor editor, KeyHandler... handlers) {
 		super(editor);
+		EditorUtil.init(editor);
 
 		DefaultInputs.init(editor);
 		addKeyBinding("AS+UP", DefaultInputs.DUPLICATE_UP);
@@ -29,11 +31,11 @@ public class CodeAssistantInputHandler extends PdeInputHandler {
 		addKeyBinding("A+ENTER", DefaultInputs.INSERT_NEW_LINE_BELLOW);
 		addKeyBinding("C+E", DefaultInputs.DELETE_LINE);
 		addKeyBinding(editor, "CS+E", "delete-line-content", DefaultInputs.DELETE_LINE_CONTENT);
-		
-		for (int i = 0; i < handlers.length; i++) {
-			keyHandlers.add(handlers[i]);
+
+		for (KeyHandler handler : handlers) {
+			keyHandlers.add(handler); 
 		}
-		
+
 		for (Map.Entry<String, AbstractAction> actionMap : KeyHandler.getActions().entrySet()) {
 			String keyBinding = actionMap.getKey();
 			AbstractAction action = actionMap.getValue();
@@ -78,11 +80,7 @@ public class CodeAssistantInputHandler extends PdeInputHandler {
 
 		if (e.isControlDown()) {
 			// on linux, ctrl-comma (prefs) being passed through to the editor
-			if (keyChar == KeyEvent.VK_COMMA) {
-				e.consume();
-				return true;
-			}
-			if (keyChar == KeyEvent.VK_SPACE) {
+			if ((keyChar == KeyEvent.VK_COMMA) || (keyChar == KeyEvent.VK_SPACE)) {
 				e.consume();
 				return true;
 			}

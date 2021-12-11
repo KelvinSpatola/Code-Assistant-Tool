@@ -1,6 +1,7 @@
 package code_assistant.util;
 
-import static code_assistant.util.Constants.*;
+import static code_assistant.util.Constants.NL;
+import static code_assistant.util.Constants.TAB_SIZE;
 
 import processing.app.ui.Editor;
 
@@ -8,8 +9,13 @@ import processing.app.ui.Editor;
 public final class EditorUtil {
 	static private final String BLOCK_OPENING = "^(?!.*?\\/+.*?\\{.*|.*\\/\\*.*|\\h*\\*.*).*?\\{.*";
 	static private final String BLOCK_CLOSING = "^(?!.*?\\/+.*?\\}.*|.*\\/\\*.*|\\h*\\*.*).*?\\}.*";
+	static private Editor editor;
 
 	private EditorUtil() {
+	}
+	
+	static public void init(Editor _editor) {
+		editor = _editor;
 	}
 
 	static public int getLineIndentation(String lineText) {
@@ -22,23 +28,23 @@ public final class EditorUtil {
 		return index;
 	}
 
-	static public int getLineIndentation(Editor editor, int line) {
+	static public int getLineIndentation(int line) {
 		int start = editor.getLineStartOffset(line);
 		int end = editor.getTextArea().getLineStartNonWhiteSpaceOffset(line);
 		return end - start;
 	}
 
-	static public int getLineIndentationOfOffset(Editor editor, int offset) {
+	static public int getLineIndentationOfOffset(int offset) {
 		int line = editor.getTextArea().getLineOfOffset(offset);
-		return getLineIndentation(editor, line);
+		return getLineIndentation(line);
 	}
-
+	
 	static public String indentText(String text, int indent) {
 		String[] lines = text.split(NL);
 		StringBuffer sb = new StringBuffer();
 
-		for (int i = 0; i < lines.length; i++) {
-			sb.append(addSpaces(indent).concat(lines[i]).concat(NL));
+		for (String line : lines) {
+			sb.append(addSpaces(indent).concat(line).concat(NL));
 		}
 		return sb.toString();
 	}
@@ -57,28 +63,15 @@ public final class EditorUtil {
 		return sb.toString();
 	}
 
-	static public String addSpaces(int length) {
-		if (length <= 0)
-			return "";
-		return String.format("%1$" + length + "s", "");
+	static public int getMatchingBraceLine(boolean goUp) {
+		return getMatchingBraceLine(editor.getTextArea().getCaretLine(), goUp);
 	}
 
-	static public int caretPositionInsideLine(Editor editor) {
-		int caretOffset = editor.getCaretOffset();
-		int lineStartOffset = editor.getLineStartOffset(editor.getTextArea().getCaretLine());
-
-		return caretOffset - lineStartOffset;
-	}
-
-	static public int getMatchingBraceLine(Editor editor, boolean goUp) {
-		return getMatchingBraceLine(editor, editor.getTextArea().getCaretLine(), goUp);
-	}
-
-	static public int getMatchingBraceLine(Editor editor, int lineIndex, boolean goUp) {
+	static public int getMatchingBraceLine(int lineIndex, boolean goUp) {
 		if (lineIndex < 0) {
 			return -1;
 		}
-		
+
 		int blockDepth = 1;
 
 		if (goUp) {
@@ -134,12 +127,25 @@ public final class EditorUtil {
 		}
 		return -1;
 	}
-
-	static public int getOffsetOfPrevious(Editor editor, char ch) {
-		return getOffsetOfPrevious(editor, ch, editor.getCaretOffset());
+	
+	static public String addSpaces(int length) {
+		if (length <= 0)
+			return "";
+		return String.format("%1$" + length + "s", "");
 	}
 
-	static public int getOffsetOfPrevious(Editor editor, char ch, int offset) {
+	static public int caretPositionInsideLine() {
+		int caretOffset = editor.getCaretOffset();
+		int lineStartOffset = editor.getLineStartOffset(editor.getTextArea().getCaretLine());
+
+		return caretOffset - lineStartOffset;
+	}
+
+	static public int getOffsetOfPrevious(char ch) {
+		return getOffsetOfPrevious(ch, editor.getCaretOffset());
+	}
+
+	static public int getOffsetOfPrevious(char ch, int offset) {
 		char[] code = editor.getText(0, offset + 1).toCharArray();
 
 		while (offset >= 0) {
@@ -150,14 +156,14 @@ public final class EditorUtil {
 		}
 		return -1;
 	}
-
+ 
 	/**
 	 * Returns the previous non-white character
-	 * 
+	 *
 	 * @return the previous non-white character
 	 */
-	static public char prevChar(Editor editor, int index) {
-		char[] code = editor.getText().toCharArray();
+	static public char prevChar(String text, int index) {
+		char[] code = text.toCharArray();
 
 		while (index >= 0) {
 			if (!Character.isWhitespace(code[index])) {
@@ -167,8 +173,20 @@ public final class EditorUtil {
 		}
 		return Character.UNASSIGNED;
 	}
+	
+	static public char prevChar(int index) {
+		char[] code = editor.getText().toCharArray();
+		
+		while (index >= 0) {
+			if (!Character.isWhitespace(code[index])) {
+				return code[index];
+			}
+			index--;
+		}
+		return Character.UNASSIGNED;
+	}
 
-	static public char prevChar(Editor editor) {
-		return prevChar(editor, editor.getCaretOffset() - 1);
+	static public char prevChar() {
+		return prevChar(editor.getCaretOffset() - 1);
 	}
 }

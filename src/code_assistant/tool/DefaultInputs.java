@@ -1,6 +1,8 @@
 package code_assistant.tool;
 
-import static code_assistant.util.Constants.*;
+import static code_assistant.util.Constants.NL;
+import static code_assistant.util.Constants.TAB;
+import static code_assistant.util.Constants.TAB_SIZE;
 
 import java.awt.event.ActionEvent;
 
@@ -12,66 +14,77 @@ import processing.app.Preferences;
 import processing.app.ui.Editor;
 
 public class DefaultInputs {
+	static private final String BLOCK_OPENING = "^(?!.*?\\/+.*?\\{.*|.*\\/\\*.*|\\h*\\*.*).*?\\{.*";
+	static private final String BLOCK_CLOSING = "^(?!.*?\\/+.*?\\}.*|.*\\/\\*.*|\\h*\\*.*).*?\\}.*";
 	static private Editor editor;
 
 	public static void init(Editor _editor) {
 		editor = _editor;
+		EditorUtil.init(editor);
 	}
 
 	public static final AbstractAction DELETE_LINE = new AbstractAction() {
+		@Override
 		public void actionPerformed(ActionEvent e) {
 			deleteLine(editor.getTextArea().getCaretLine());
 		}
 	};
 
 	public static final AbstractAction DELETE_LINE_CONTENT = new AbstractAction() {
+		@Override
 		public void actionPerformed(ActionEvent e) {
 			deleteLineContent(editor.getTextArea().getCaretLine());
 		}
 	};
 
 	public static final AbstractAction DUPLICATE_UP = new AbstractAction() {
+		@Override
 		public void actionPerformed(ActionEvent e) {
 			duplicateLines(true);
 		}
 	};
 
 	public static final AbstractAction DUPLICATE_DOWN = new AbstractAction() {
+		@Override
 		public void actionPerformed(ActionEvent e) {
 			duplicateLines(false);
 		}
 	};
 
 	public static final AbstractAction MOVE_UP = new AbstractAction() {
+		@Override
 		public void actionPerformed(ActionEvent e) {
 			moveLines(true);
 		}
 	};
 
 	public static final AbstractAction MOVE_DOWN = new AbstractAction() {
+		@Override
 		public void actionPerformed(ActionEvent e) {
 			moveLines(false);
 		}
 	};
 
 	static public final AbstractAction INSERT_NEW_LINE_BELLOW = new AbstractAction() {
+		@Override
 		public void actionPerformed(ActionEvent e) {
-			insertNewLineBellow(editor.getTextArea().getCaretLine());
+			insertNewLineBellow(editor.getCaretOffset());
 		}
 	};
-	
+
 	static public final AbstractAction INDENT_TEXT = new AbstractAction() {
-		public void actionPerformed(ActionEvent e) {			
+		@Override
+		public void actionPerformed(ActionEvent e) {
 			handleTabulation(false);
 		}
 	};
-	
+
 	static public final AbstractAction OUTDENT_TEXT = new AbstractAction() {
-		public void actionPerformed(ActionEvent e) {			
+		@Override
+		public void actionPerformed(ActionEvent e) {
 			handleTabulation(true);
 		}
 	};
-	
 
 	/*
 	 * ******** METHODS ********
@@ -170,27 +183,48 @@ public class DefaultInputs {
 		}
 		editor.stopCompoundEdit();
 	}
-	
-	static private void insertNewLineBellow(int caretLine) {
-		String lineText = editor.getLineText(caretLine);
-		int indent = EditorUtil.getLineIndentation(lineText);
 
-		if (lineText.contains("{") && (EditorUtil.caretPositionInsideLine(editor) > lineText.indexOf("{")))
-			indent += TAB_SIZE;
+	static private void insertNewLineBellow(int offset) {
+		int line = editor.getTextArea().getLineOfOffset(offset);
+		String lineText = editor.getLineText(line);
+		
+		int indent = 0;
+		int caretPos = EditorUtil.caretPositionInsideLine();
 
-		int caretPos = editor.getCaretOffset();
+		if (lineText.matches(BLOCK_OPENING)) {
+			indent = EditorUtil.getLineIndentation(line);
+			
+			if (caretPos > lineText.indexOf('{'))
+				indent += TAB_SIZE;
+			
+		} else if (lineText.matches(BLOCK_CLOSING)) {
+			indent = EditorUtil.getLineIndentation(line);
+			int closeBrace = lineText.indexOf('}');
+			
+			if (caretPos <= closeBrace) {
+				offset += (closeBrace - caretPos);
+				editor.setSelection(offset, offset);
+				editor.insertText(TAB);
+				offset += TAB_SIZE;
+			}
+			
+		} else {
+			int startBrace = EditorUtil.getMatchingBraceLine(line, true);
+
+			if (startBrace != -1) // an opening brace was found, we are in a block scope
+				indent = EditorUtil.getLineIndentation(startBrace) + TAB_SIZE;
+		}
 
 		editor.startCompoundEdit();
-		editor.insertText(NL + (indent > 0 ? EditorUtil.addSpaces(indent) : ""));
-		editor.getTextArea().setCaretPosition(caretPos);
+		editor.insertText(NL + EditorUtil.addSpaces(indent));
+		editor.setSelection(offset, offset);
 		editor.stopCompoundEdit();
 	}
-	
-	
+
 	static private void handleTabulation(boolean isShiftDown) {
 		if (isShiftDown) {
 			editor.handleOutdent();
-			
+
 		} else if (editor.isSelectionActive()) {
 			editor.handleIndent();
 

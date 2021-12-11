@@ -34,19 +34,22 @@ public class CodeAssistant implements Tool {
 	private final String TOOL_NAME = "Code Assistant";
 	private Base base;
 
+	@Override
 	public String getMenuTitle() {
 		return TOOL_NAME;
 	}
 
+	@Override
 	public void init(Base base) {
-		this.base = base;	
+		this.base = base;
 		ToolPreferences.init();
 	}
 
+	@Override
 	public void run() {
 		Editor editor = base.getActiveEditor();
 
-		CodeAssistantInputHandler inputHandler = new CodeAssistantInputHandler(editor, 
+		CodeAssistantInputHandler inputHandler = new CodeAssistantInputHandler(editor,
 				new JavaModeInputs(editor));
 				//new BracketCloser(editor));
 
