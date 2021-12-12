@@ -25,12 +25,22 @@
 
 package code_assistant.tool;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+
+import code_assistant.util.Constants;
 import code_assistant.util.ToolPreferences;
 import processing.app.Base;
+import processing.app.Platform;
 import processing.app.tools.Tool;
 import processing.app.ui.Editor;
 
-public class CodeAssistant implements Tool {
+public class CodeAssistant implements Tool, ActionTrigger {
 	private final String TOOL_NAME = "Code Assistant";
 	private Base base;
 	private boolean isRunning = false;
@@ -53,20 +63,37 @@ public class CodeAssistant implements Tool {
 		final DefaultInputs defaultInputs = new DefaultInputs(editor);
 		final JavaModeInputs javaModeInputs = new JavaModeInputs(editor);
 		final BracketCloser bracketCloser = new BracketCloser(editor);
+	
 
-		CodeAssistantInputHandler inputHandler = new CodeAssistantInputHandler(editor, defaultInputs, javaModeInputs);
+		CodeAssistantInputHandler inputHandler = new CodeAssistantInputHandler(editor,
+				defaultInputs, 
+				javaModeInputs,
+				this);
+		
 		inputHandler.addKeyPressedListeners(javaModeInputs, bracketCloser);
 		editor.getTextArea().setInputHandler(inputHandler);
 
 		System.out.println(TOOL_NAME + " v. ##tool.prettyVersion## by Kelvin Spatola.");
 
 		if (!isRunning) {
-			editor.statusNotice("https://github.com/KelvinSpatola/Code-Assistant-Tool");			
+			editor.statusNotice(TOOL_NAME + " is already active.");			
 			isRunning = true;
 		} else {
 			editor.statusNotice(TOOL_NAME + " is already active.");
 		}
+	}
+	
+	@Override
+	public Map<String, Action> getActions() {
+		Map<String, Action> actions = new HashMap<>();
+		
+		actions.put("F9", new AbstractAction("visit-website") {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Platform.openURL(Constants.WEBSITE);
+			}
+		});
 
-		// Messages.showWarning("PDE++ Tool", "Kelvin Clark Magalhaes Spatola");
+		return actions;
 	}
 }
