@@ -1,85 +1,99 @@
 package code_assistant.tool;
 
-import static code_assistant.util.Constants.NL;
-import static code_assistant.util.Constants.TAB;
-import static code_assistant.util.Constants.TAB_SIZE;
+import static code_assistant.util.Constants.*;
 
 import java.awt.event.ActionEvent;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 
 import code_assistant.util.EditorUtil;
 import code_assistant.util.Selection;
 import processing.app.Preferences;
 import processing.app.ui.Editor;
 
-public class DefaultInputs {
-	static private final String BLOCK_OPENING = "^(?!.*?\\/+.*?\\{.*|.*\\/\\*.*|\\h*\\*.*).*?\\{.*";
-	static private final String BLOCK_CLOSING = "^(?!.*?\\/+.*?\\}.*|.*\\/\\*.*|\\h*\\*.*).*?\\}.*";
-	static private Editor editor;
+public class DefaultInputs implements ActionTrigger {
+	protected Map<String, Action> actions = new HashMap<>();
+	protected Editor editor;
 
-	public static void init(Editor _editor) {
-		editor = _editor;
-		EditorUtil.init(editor);
+	public DefaultInputs(Editor editor) {
+		this.editor = editor;
+
+		actions.put("AS+UP", DUPLICATE_UP);
+		actions.put("AS+DOWN", DUPLICATE_DOWN);
+		actions.put("A+UP", MOVE_UP);
+		actions.put("A+DOWN", MOVE_DOWN);
+		actions.put("TAB", INDENT_TEXT);
+		actions.put("S+TAB", OUTDENT_TEXT);
+		actions.put("A+ENTER", INSERT_NEW_LINE_BELLOW);
+		actions.put("C+E", DELETE_LINE);
+		actions.put("CS+E", DELETE_LINE_CONTENT);
+	}
+	
+	@Override
+	public Map<String, Action> getActions() {
+		return actions;
 	}
 
-	public static final AbstractAction DELETE_LINE = new AbstractAction() {
+	private final Action DELETE_LINE = new AbstractAction() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			deleteLine(editor.getTextArea().getCaretLine());
 		}
 	};
 
-	public static final AbstractAction DELETE_LINE_CONTENT = new AbstractAction() {
+	private final Action DELETE_LINE_CONTENT = new AbstractAction("delete-line-content") {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			deleteLineContent(editor.getTextArea().getCaretLine());
 		}
-	};
+	};	
 
-	public static final AbstractAction DUPLICATE_UP = new AbstractAction() {
+	private final Action DUPLICATE_UP = new AbstractAction() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			duplicateLines(true);
 		}
 	};
 
-	public static final AbstractAction DUPLICATE_DOWN = new AbstractAction() {
+	private final Action DUPLICATE_DOWN = new AbstractAction() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			duplicateLines(false);
 		}
 	};
 
-	public static final AbstractAction MOVE_UP = new AbstractAction() {
+	private final Action MOVE_UP = new AbstractAction() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			moveLines(true);
 		}
 	};
 
-	public static final AbstractAction MOVE_DOWN = new AbstractAction() {
+	private final Action MOVE_DOWN = new AbstractAction() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			moveLines(false);
 		}
 	};
-
-	static public final AbstractAction INSERT_NEW_LINE_BELLOW = new AbstractAction() {
+	
+	private final Action INSERT_NEW_LINE_BELLOW = new AbstractAction() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			insertNewLineBellow(editor.getCaretOffset());
 		}
 	};
 
-	static public final AbstractAction INDENT_TEXT = new AbstractAction() {
+	private final Action INDENT_TEXT = new AbstractAction() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			handleTabulation(false);
 		}
 	};
 
-	static public final AbstractAction OUTDENT_TEXT = new AbstractAction() {
+	private final Action OUTDENT_TEXT = new AbstractAction() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			handleTabulation(true);
@@ -90,7 +104,7 @@ public class DefaultInputs {
 	 * ******** METHODS ********
 	 */
 
-	static private void duplicateLines(boolean up) {
+	private void duplicateLines(boolean up) {
 		Selection s = new Selection(editor);
 
 		if (s.getEndLine() == editor.getLineCount() - 1) {
@@ -110,7 +124,7 @@ public class DefaultInputs {
 			editor.setSelection(editor.getCaretOffset() - 1, s.getEnd() + 1);
 	}
 
-	static private void deleteLine(int line) {
+	private void deleteLine(int line) {
 		// in case we are in the last line of text (but not when it's also first one)
 		if (line == editor.getLineCount() - 1 && line != 0) {
 			// subtracting 1 from getLineStartOffset() will delete the line break prior
@@ -133,7 +147,7 @@ public class DefaultInputs {
 		}
 	}
 
-	static private void deleteLineContent(int line) {
+	private void deleteLineContent(int line) {
 		int start = editor.getTextArea().getLineStartNonWhiteSpaceOffset(line);
 		int end = editor.getLineStopOffset(line) - 1;
 
@@ -141,7 +155,7 @@ public class DefaultInputs {
 		editor.setSelectedText("");
 	}
 
-	static private void moveLines(boolean moveUp) {
+	private void moveLines(boolean moveUp) {
 		Selection s = new Selection(editor);
 
 		int targetLine = moveUp ? s.getStartLine() - 1 : s.getEndLine() + 1;
@@ -158,56 +172,88 @@ public class DefaultInputs {
 		String replacedText = editor.getText(target_start, target_end);
 
 		editor.startCompoundEdit();
-		{
-			editor.setSelection(s.getStart(), s.getEnd());
+		editor.setSelection(s.getStart(), s.getEnd());
 
-			int newSelectionStart, newSelectionEnd;
+		int newSelectionStart, newSelectionEnd;
 
-			// swap lines
-			if (moveUp) {
-				editor.setSelection(target_start, s.getEnd());
-				editor.setSelectedText(selectedText + NL + replacedText);
+		// swap lines
+		if (moveUp) {
+			editor.setSelection(target_start, s.getEnd());
+			editor.setSelectedText(selectedText + NL + replacedText);
 
-				newSelectionStart = editor.getLineStartOffset(targetLine);
-				newSelectionEnd = editor.getLineStopOffset(s.getEndLine() - 1) - 1;
-			} else {
-				editor.setSelection(s.getStart(), target_end);
-				editor.setSelectedText(replacedText + NL + selectedText);
+			newSelectionStart = editor.getLineStartOffset(targetLine);
+			newSelectionEnd = editor.getLineStopOffset(s.getEndLine() - 1) - 1;
+		} else {
+			editor.setSelection(s.getStart(), target_end);
+			editor.setSelectedText(replacedText + NL + selectedText);
 
-				newSelectionStart = editor.getLineStartOffset(s.getStartLine() + 1);
-				newSelectionEnd = editor.getLineStopOffset(targetLine) - 1;
-			}
-
-			// update selection
-			editor.setSelection(newSelectionStart, newSelectionEnd);
+			newSelectionStart = editor.getLineStartOffset(s.getStartLine() + 1);
+			newSelectionEnd = editor.getLineStopOffset(targetLine) - 1;
 		}
+
+		// update selection
+		editor.setSelection(newSelectionStart, newSelectionEnd);
+		
+		s = new Selection(editor);
+		
+		String lineText = editor.getLineText(s.getStartLine());
+		
+//		if (lineText.matches(BLOCK_OPENING) || lineText.matches(BLOCK_CLOSING)) {
+//			System.out.println("brace!!! - " + lineText);		
+//			editor.stopCompoundEdit();
+//			return;
+//		}
+		
+		int brace = EditorUtil.getMatchingBraceLine(s.getStartLine(), true);
+		int blockIndentation = 0;
+
+		if (brace != -1) { // an opening brace was found, we are in a block scope
+			blockIndentation = EditorUtil.getLineIndentation(brace) + TAB_SIZE;
+		} 
+				
+		boolean isBrace =  (lineText.matches(BLOCK_OPENING) || lineText.matches(BLOCK_CLOSING));
+		
+		int selectionIndent = EditorUtil.getLineIndentation(isBrace ? s.getStartLine() - 1: s.getStartLine());
+		
+		System.out.println("brace line: " + brace
+				+ " - blockIndentation: " + blockIndentation 
+				+ " - selection indent: " + selectionIndent
+				+ " - s.getStartLine(): " + (isBrace ? s.getStartLine() - 1: s.getStartLine()));
+		
+		if (selectionIndent < blockIndentation) {
+			editor.handleIndent();
+			
+		} else if (selectionIndent > blockIndentation) {
+			editor.handleOutdent();
+		}
+
 		editor.stopCompoundEdit();
 	}
 
-	static private void insertNewLineBellow(int offset) {
+	private void insertNewLineBellow(int offset) {
 		int line = editor.getTextArea().getLineOfOffset(offset);
 		String lineText = editor.getLineText(line);
-		
+
 		int indent = 0;
 		int caretPos = EditorUtil.caretPositionInsideLine();
 
 		if (lineText.matches(BLOCK_OPENING)) {
 			indent = EditorUtil.getLineIndentation(line);
-			
+
 			if (caretPos > lineText.indexOf('{'))
 				indent += TAB_SIZE;
-			
+
 		} else if (lineText.matches(BLOCK_CLOSING)) {
 			indent = EditorUtil.getLineIndentation(line);
 			int closeBrace = lineText.indexOf('}');
-			
+
 			if (caretPos <= closeBrace) {
 				offset += (closeBrace - caretPos);
 				editor.setSelection(offset, offset);
 				editor.insertText(TAB);
 				offset += TAB_SIZE;
 			}
-			
+
 		} else {
 			int startBrace = EditorUtil.getMatchingBraceLine(line, true);
 
@@ -221,7 +267,7 @@ public class DefaultInputs {
 		editor.stopCompoundEdit();
 	}
 
-	static private void handleTabulation(boolean isShiftDown) {
+	private void handleTabulation(boolean isShiftDown) {
 		if (isShiftDown) {
 			editor.handleOutdent();
 

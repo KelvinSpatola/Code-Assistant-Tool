@@ -7,7 +7,9 @@ public final class Constants {
 	public static final String TAB = EditorUtil.addSpaces(TAB_SIZE);
 	public static final String NL = "\n";
 
+	public static final String BLOCK_OPENING = "^(?!.*?\\/+.*?\\{.*|.*\\/\\*.*|\\h*\\*.*).*?\\{.*";
+	public static final String BLOCK_CLOSING = "^(?!.*?\\/+.*?\\}.*|.*\\/\\*.*|\\h*\\*.*).*?\\}.*";
 
 	private Constants() {
-	}
+	} 
 }

@@ -33,6 +33,7 @@ import processing.app.ui.Editor;
 public class CodeAssistant implements Tool {
 	private final String TOOL_NAME = "Code Assistant";
 	private Base base;
+	private boolean isRunning = false;
 
 	@Override
 	public String getMenuTitle() {
@@ -49,15 +50,23 @@ public class CodeAssistant implements Tool {
 	public void run() {
 		Editor editor = base.getActiveEditor();
 
-		CodeAssistantInputHandler inputHandler = new CodeAssistantInputHandler(editor,
-				new JavaModeInputs(editor));
-				//new BracketCloser(editor));
+		final DefaultInputs defaultInputs = new DefaultInputs(editor);
+		final JavaModeInputs javaModeInputs = new JavaModeInputs(editor);
+		final BracketCloser bracketCloser = new BracketCloser(editor);
 
+		CodeAssistantInputHandler inputHandler = new CodeAssistantInputHandler(editor, defaultInputs, javaModeInputs);
+		inputHandler.addKeyPressedListeners(javaModeInputs, bracketCloser);
 		editor.getTextArea().setInputHandler(inputHandler);
 
 		System.out.println(TOOL_NAME + " v. ##tool.prettyVersion## by Kelvin Spatola.");
 
-		// editor.statusNotice("Kelvin Clark ");
+		if (!isRunning) {
+			editor.statusNotice("https://github.com/KelvinSpatola/Code-Assistant-Tool");			
+			isRunning = true;
+		} else {
+			editor.statusNotice(TOOL_NAME + " is already active.");
+		}
+
 		// Messages.showWarning("PDE++ Tool", "Kelvin Clark Magalhaes Spatola");
 	}
 }

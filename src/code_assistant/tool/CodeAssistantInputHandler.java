@@ -6,47 +6,43 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.KeyStroke;
 
-import code_assistant.util.EditorUtil;
 import processing.app.Platform;
 import processing.app.syntax.PdeInputHandler;
 import processing.app.ui.Editor;
 
 public class CodeAssistantInputHandler extends PdeInputHandler {
-	protected List<KeyHandler> keyHandlers = new ArrayList<>();
+	protected List<KeyPressedListener> keyListeners = new ArrayList<>();
 
 	// CONSTRUCTOR
-	public CodeAssistantInputHandler(Editor editor, KeyHandler... handlers) {
+	public CodeAssistantInputHandler(Editor editor, ActionTrigger... triggers) {
 		super(editor);
-		EditorUtil.init(editor);
 
-		DefaultInputs.init(editor);
-		addKeyBinding("AS+UP", DefaultInputs.DUPLICATE_UP);
-		addKeyBinding("AS+DOWN", DefaultInputs.DUPLICATE_DOWN);
-		addKeyBinding("A+UP", DefaultInputs.MOVE_UP);
-		addKeyBinding("A+DOWN", DefaultInputs.MOVE_DOWN);
-		addKeyBinding("TAB", DefaultInputs.INDENT_TEXT);
-		addKeyBinding("S+TAB", DefaultInputs.OUTDENT_TEXT);
-		addKeyBinding("A+ENTER", DefaultInputs.INSERT_NEW_LINE_BELLOW);
-		addKeyBinding("C+E", DefaultInputs.DELETE_LINE);
-		addKeyBinding(editor, "CS+E", "delete-line-content", DefaultInputs.DELETE_LINE_CONTENT);
-
-		for (KeyHandler handler : handlers) {
-			keyHandlers.add(handler); 
-		}
-
-		for (Map.Entry<String, AbstractAction> actionMap : KeyHandler.getActions().entrySet()) {
-			String keyBinding = actionMap.getKey();
-			AbstractAction action = actionMap.getValue();
-			addKeyBinding(keyBinding, action);
+		for(ActionTrigger trigger : triggers) {
+			for (Map.Entry<String, Action> entry : trigger.getActions().entrySet()) {
+				
+				String keyBinding = entry.getKey();
+				Action action = entry.getValue();
+				String name = (String) action.getValue(Action.NAME);
+				
+				if (name == null) {
+					addKeyBinding(keyBinding, action);
+					
+				} else {
+					KeyStroke ks = parseKeyStroke(keyBinding);
+					editor.getTextArea().getInputMap().put(ks, name);
+					editor.getTextArea().getActionMap().put(name, action);
+				}
+			}
 		}
 	}
-
-	static public void addKeyBinding(Editor editor, String keyBinding, String actionName, AbstractAction action) {
-		KeyStroke ks = parseKeyStroke(keyBinding);
-		editor.getTextArea().getInputMap().put(ks, actionName);
-		editor.getTextArea().getActionMap().put(actionName, action);
+	
+	public void addKeyPressedListeners(KeyPressedListener... listeners) {
+		for (KeyPressedListener listener : listeners) {
+			keyListeners.add(listener);
+		}
 	}
 
 	@Override
@@ -64,8 +60,8 @@ public class CodeAssistantInputHandler extends PdeInputHandler {
 		if (e.isMetaDown())
 			return false;
 
-		for (KeyHandler handler : keyHandlers) {
-			if (handler.handlePressed(e)) {
+		for (KeyPressedListener listener : keyListeners) {
+			if (listener.handlePressed(e)) {
 				handleInputMethodCommit();
 				e.consume();
 				return true;

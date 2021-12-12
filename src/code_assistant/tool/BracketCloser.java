@@ -4,8 +4,8 @@ import java.awt.event.KeyEvent;
 
 import processing.app.ui.Editor;
 
-public class BracketCloser implements KeyHandler {
-	static private Editor editor;
+public class BracketCloser implements KeyPressedListener {
+	private Editor editor;
 
 	// needed to remove double brackets (when typing too fast)
 	static char lastChar;
@@ -39,7 +39,7 @@ public class BracketCloser implements KeyHandler {
 
 
 	// add closing bracket and set caret inside brackets
-	static private void addClosingChar(int positionOfChar) {
+	private void addClosingChar(int positionOfChar) {
 		editor.insertText(Character.toString(closingChar[positionOfChar]));
 
 		int cursorPos = editor.getCaretOffset();
@@ -48,7 +48,7 @@ public class BracketCloser implements KeyHandler {
 	}
 
 	// if something is selected wrap closing brackets around selection
-	static private void addClosingChar(int positionOfChar, int startSelection, int endSelection) {
+	private void addClosingChar(int positionOfChar, int startSelection, int endSelection) {
 		editor.setSelection(endSelection, endSelection);
 		editor.insertText(Character.toString(closingChar[positionOfChar]));
 		editor.setSelection(startSelection, startSelection);
@@ -59,7 +59,7 @@ public class BracketCloser implements KeyHandler {
 	// TODO: corrigir bug quando este metodo e chamado para apagar um 'closing char'
 	// e acaba movendo o scroll do editor.
 
-	static private void removeClosingChar(int positionOfChar) {
+	private void removeClosingChar(int positionOfChar) {
 		// return if character is ' or "
 		if (closingChar[positionOfChar] == '\'' || closingChar[positionOfChar] == '"')
 			return;

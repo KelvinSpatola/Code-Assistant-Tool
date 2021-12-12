@@ -8,9 +8,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 
 import code_assistant.util.EditorUtil;
 import code_assistant.util.Selection;
@@ -18,40 +21,86 @@ import processing.app.Language;
 import processing.app.Preferences;
 import processing.app.ui.Editor;
 
-
-public class JavaModeInputs implements KeyHandler {
+public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 	static final String COMMENT_TEXT = "^(?!.*\\\".*\\/\\*.*\\\")(?:.*\\/\\*.*|\\h*\\*.*)";
 	static final String STRING_TEXT = "^(?!(.*?(\\*|\\/+).*?\\\".*\\\")).*(?:\\\".*){2}";
 	static final String SPLIT_STRING_TEXT = "^\\h*\\+\\s*(?:\\\".*){2}";
 
-	static private Editor editor;
+	protected Map<String, Action> actions = new HashMap<>();
+	protected Editor editor;
 
-	public JavaModeInputs(Editor _editor) {
-		editor = _editor;
+	public JavaModeInputs(Editor editor) {
+		this.editor = editor;
 		EditorUtil.init(editor);
 
 		actions.put("ENTER", HANDLE_ENTER);
 		actions.put("CA+RIGHT", SELECT_BLOCK);
-
-		CodeAssistantInputHandler.addKeyBinding(editor, "C+T", "format-selected-text",
-				JavaModeInputs.FORMAT_SELECTED_TEXT);
+		actions.put("C+T", FORMAT_SELECTED_TEXT);
 	}
 
-	static public final AbstractAction FORMAT_SELECTED_TEXT = new AbstractAction() {
+	@Override
+	public Map<String, Action> getActions() {
+		return actions;
+	}
+	
+	@Override
+	public boolean handlePressed(KeyEvent e) {
+		if (e.getKeyChar() == '}') {
+			if (Preferences.getBoolean("editor.indent")) {
+				editor.startCompoundEdit();
+
+				// erase any selection content
+				if (editor.isSelectionActive()) {
+					editor.setSelectedText("");
+				}
+
+				int line = editor.getTextArea().getCaretLine();
+
+				// don't do anything, this line has other stuff on it
+				if (!editor.getLineText(line).isBlank()) {
+					editor.stopCompoundEdit();
+					return false;
+				}
+
+				int startBrace = EditorUtil.getMatchingBraceLine(true);
+
+				// open brace not found
+				if (startBrace == -1) {
+					editor.stopCompoundEdit();
+					return false;
+				}
+
+				int indent = EditorUtil.getLineIndentation(startBrace);
+
+				editor.setSelection(editor.getLineStartOffset(line), editor.getCaretOffset());
+				editor.setSelectedText(EditorUtil.addSpaces(indent));
+
+				editor.stopCompoundEdit();
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/*
+	 * ******** ACTIONS ********
+	 */
+	
+	private final Action FORMAT_SELECTED_TEXT = new AbstractAction("format-selected-text") {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			formatSelectedText();
 		}
 	};
 
-	static public final AbstractAction SELECT_BLOCK = new AbstractAction() {
+	private final Action SELECT_BLOCK = new AbstractAction() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			selectBlockOfCode();
 		}
 	};
 
-	static public final AbstractAction HANDLE_ENTER = new AbstractAction() {
+	private final Action HANDLE_ENTER = new AbstractAction() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			handleEnter();
@@ -59,10 +108,12 @@ public class JavaModeInputs implements KeyHandler {
 	};
 
 	/*
+
+	/*
 	 * ******** METHODS ********
 	 */
 
-	static private void handleEnter() {
+	private void handleEnter() {
 		int caretLine = editor.getTextArea().getCaretLine();
 		String lineText = editor.getLineText(caretLine);
 
@@ -122,7 +173,7 @@ public class JavaModeInputs implements KeyHandler {
 			handleNewLine();
 	}
 
-	static private void splitString(int caretLine) {
+	private void splitString(int caretLine) {
 		int indent = EditorUtil.getLineIndentation(caretLine);
 		if (!editor.getLineText(caretLine).matches(SPLIT_STRING_TEXT))
 			indent += TAB_SIZE;
@@ -132,7 +183,7 @@ public class JavaModeInputs implements KeyHandler {
 		editor.stopCompoundEdit();
 	}
 
-	static private void splitComment(int caretLine) {
+	private void splitComment(int caretLine) {
 		int indent = EditorUtil.getLineIndentation(caretLine);
 
 		editor.startCompoundEdit();
@@ -156,11 +207,11 @@ public class JavaModeInputs implements KeyHandler {
 		editor.stopCompoundEdit();
 	}
 
-	static private void createBlockScope() {
+	private void createBlockScope() {
 
 	}
 
-	static private void handleNewLine() {
+	private void handleNewLine() {
 		char[] code = editor.getText().toCharArray();
 
 		if (Preferences.getBoolean("editor.indent")) {
@@ -250,7 +301,7 @@ public class JavaModeInputs implements KeyHandler {
 		}
 	}
 
-	static private void selectBlockOfCode() {
+	private void selectBlockOfCode() {
 		final char OPEN_BRACE = '{';
 		final char CLOSE_BRACE = '}';
 
@@ -296,7 +347,7 @@ public class JavaModeInputs implements KeyHandler {
 		editor.setSelection(start, end);
 	}
 
-	static private void formatSelectedText() {
+	private void formatSelectedText() {
 		if (editor.isSelectionActive()) {
 
 			if (editor.getSelectedText().isBlank()) {
@@ -307,7 +358,7 @@ public class JavaModeInputs implements KeyHandler {
 
 			String selectedText;
 
-			 // long string literals are formatted here
+			// long string literals are formatted here
 			if (Preferences.getBoolean("code_assistant.auto_format.strings")) {
 				selectedText = refactorStringLiterals(s.getText());
 			} else {
@@ -362,7 +413,7 @@ public class JavaModeInputs implements KeyHandler {
 		}
 	}
 
-	static private String refactorStringLiterals(String text) {
+	private String refactorStringLiterals(String text) {
 		int maxLength = Preferences.getInteger("code_assistant.auto_format.line_length");
 
 		List<String> lines = new ArrayList<>(Arrays.asList(text.split(NL)));
@@ -401,45 +452,6 @@ public class JavaModeInputs implements KeyHandler {
 		}
 
 		return result.toString();
-	}
-
-	@Override
-	public boolean handlePressed(KeyEvent e) {
-		if (e.getKeyChar() == '}') {
-			if (Preferences.getBoolean("editor.indent")) {
-				editor.startCompoundEdit();
-
-				// erase any selection content
-				if (editor.isSelectionActive()) {
-					editor.setSelectedText("");
-				}
-
-				int line = editor.getTextArea().getCaretLine();
-
-				// don't do anything, this line has other stuff on it
-				if (!editor.getLineText(line).isBlank()) {
-					editor.stopCompoundEdit();
-					return false;
-				}
-
-				int startBrace = EditorUtil.getMatchingBraceLine(true);
-
-				// open brace not found
-				if (startBrace == -1) {
-					editor.stopCompoundEdit();
-					return false;
-				}
-
-				int indent = EditorUtil.getLineIndentation(startBrace);
-
-				editor.setSelection(editor.getLineStartOffset(line), editor.getCaretOffset());
-				editor.setSelectedText(EditorUtil.addSpaces(indent));
-
-				editor.stopCompoundEdit();
-				return true;
-			}
-		}
-		return false;
 	}
 
 	private static void println(Object... objects) {

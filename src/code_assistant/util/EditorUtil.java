@@ -1,21 +1,18 @@
 package code_assistant.util;
 
-import static code_assistant.util.Constants.NL;
-import static code_assistant.util.Constants.TAB_SIZE;
+import static code_assistant.util.Constants.*;
 
 import processing.app.ui.Editor;
 
 
 public final class EditorUtil {
-	static private final String BLOCK_OPENING = "^(?!.*?\\/+.*?\\{.*|.*\\/\\*.*|\\h*\\*.*).*?\\{.*";
-	static private final String BLOCK_CLOSING = "^(?!.*?\\/+.*?\\}.*|.*\\/\\*.*|\\h*\\*.*).*?\\}.*";
 	static private Editor editor;
 
 	private EditorUtil() {
 	}
 	
 	static public void init(Editor _editor) {
-		editor = _editor;
+		editor = _editor; 
 	}
 
 	static public int getLineIndentation(String lineText) {
@@ -48,6 +45,17 @@ public final class EditorUtil {
 		}
 		return sb.toString();
 	}
+	
+//	static public String indentText(String text, int indent) {
+//		String[] lines = text.split(NL);
+//		StringBuffer sb = new StringBuffer();
+//
+//		for (String line : lines) {
+//			line = line.stripLeading();
+//			sb.append(addSpaces(indent).concat(line).concat(NL));
+//		}
+//		return sb.toString();
+//	}
 
 	static public String outdentText(String text) {
 		String[] lines = text.split(NL);
