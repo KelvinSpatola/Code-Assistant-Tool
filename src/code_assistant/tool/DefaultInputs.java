@@ -105,20 +105,14 @@ public class DefaultInputs implements ActionTrigger {
 	private final Action TO_UPPER_CASE = new AbstractAction() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			if (editor.isSelectionActive()) {
-				String modifiedText = editor.getSelectedText().toUpperCase();
-				editor.setSelectedText(modifiedText);
-			}
+			changeCase(true);
 		}
 	};
 
 	private final Action TO_LOWER_CASE = new AbstractAction() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			if (editor.isSelectionActive()) {
-				String modifiedText = editor.getSelectedText().toLowerCase();
-				editor.setSelectedText(modifiedText);
-			}
+			changeCase(false);
 		}
 	};
 
@@ -218,6 +212,11 @@ public class DefaultInputs implements ActionTrigger {
 		editor.setSelection(newSelectionStart, newSelectionEnd);
 
 		// RESOLVE INDENTATION
+		if (Preferences.getBoolean("code_assistant.move_lines.auto_indent") == false) {
+			editor.stopCompoundEdit();
+			return;
+		}
+
 		s = new Selection(editor);
 
 		int line = s.getStartLine();
@@ -235,13 +234,13 @@ public class DefaultInputs implements ActionTrigger {
 				brace = EditorUtil.getMatchingBraceLine(line, true);
 				blockIndent = EditorUtil.getLineIndentation(brace);
 
-			} else  {
+			} else {
 				blockIndent = EditorUtil.getLineIndentation(brace) + TAB_SIZE;
 			}
 		}
 
 		int selectionIndent = EditorUtil.getLineIndentation(lineText);
-		
+
 		if (selectionIndent < blockIndent)
 			editor.handleIndent();
 
@@ -302,6 +301,20 @@ public class DefaultInputs implements ActionTrigger {
 
 		} else {
 			editor.setSelectedText("\t");
+		}
+	}
+
+	private void changeCase(boolean toUpperCase) {
+		if (editor.isSelectionActive()) {
+			int start = editor.getSelectionStart();
+			int end = editor.getSelectionStop();
+
+			if (toUpperCase) {
+				editor.setSelectedText(editor.getSelectedText().toUpperCase());
+			} else {
+				editor.setSelectedText(editor.getSelectedText().toLowerCase());
+			}
+			editor.setSelection(start, end);
 		}
 	}
 

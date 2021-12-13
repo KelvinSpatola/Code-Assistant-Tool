@@ -11,6 +11,8 @@ public final class ToolPreferences {
 		set("code_assistant.auto_format.strings", "true");
 		set("code_assistant.auto_format.comments", "true");
 		set("code_assistant.auto_format.line_length", "80");
+
+		set("code_assistant.move_lines.auto_indent", "true");
 	}
 
 	static public void set(String attribute, String value) {
