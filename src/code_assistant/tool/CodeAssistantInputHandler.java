@@ -26,7 +26,7 @@ public class CodeAssistantInputHandler extends PdeInputHandler {
 				String keyBinding = entry.getKey();
 				Action action = entry.getValue();
 				String name = (String) action.getValue(Action.NAME);
-				
+								
 				if (name == null) {
 					addKeyBinding(keyBinding, action);
 					

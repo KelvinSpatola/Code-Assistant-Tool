@@ -4,15 +4,14 @@ import static code_assistant.util.Constants.*;
 
 import processing.app.ui.Editor;
 
-
 public final class EditorUtil {
 	static private Editor editor;
 
 	private EditorUtil() {
 	}
-	
+
 	static public void init(Editor _editor) {
-		editor = _editor; 
+		editor = _editor;
 	}
 
 	static public int getLineIndentation(String lineText) {
@@ -35,7 +34,7 @@ public final class EditorUtil {
 		int line = editor.getTextArea().getLineOfOffset(offset);
 		return getLineIndentation(line);
 	}
-	
+
 	static public String indentText(String text, int indent) {
 		String[] lines = text.split(NL);
 		StringBuffer sb = new StringBuffer();
@@ -45,7 +44,7 @@ public final class EditorUtil {
 		}
 		return sb.toString();
 	}
-	
+
 //	static public String indentText(String text, int indent) {
 //		String[] lines = text.split(NL);
 //		StringBuffer sb = new StringBuffer();
@@ -135,7 +134,38 @@ public final class EditorUtil {
 		}
 		return -1;
 	}
-	
+
+	static public int getMatchingBraceLineAlt(int lineIndex) {
+		if (lineIndex < 0) {
+			return -1;
+		}
+
+		int blockDepth = 1;
+		boolean first = true;
+
+		while (lineIndex >= 0) {
+			String lineText = editor.getLineText(lineIndex);
+
+			if (lineText.matches(BLOCK_CLOSING)) {
+				blockDepth++;
+				lineIndex--;
+
+			} else if (lineText.matches(BLOCK_OPENING) && !first) {
+				blockDepth--;
+
+				if (blockDepth == 0)
+					return lineIndex;
+
+				lineIndex--;
+
+			} else {
+				lineIndex--;
+			}
+			first = false;
+		}
+		return -1;
+	}
+
 	static public String addSpaces(int length) {
 		if (length <= 0)
 			return "";
@@ -164,7 +194,7 @@ public final class EditorUtil {
 		}
 		return -1;
 	}
- 
+
 	/**
 	 * Returns the previous non-white character
 	 *
@@ -181,10 +211,10 @@ public final class EditorUtil {
 		}
 		return Character.UNASSIGNED;
 	}
-	
+
 	static public char prevChar(int index) {
 		char[] code = editor.getText().toCharArray();
-		
+
 		while (index >= 0) {
 			if (!Character.isWhitespace(code[index])) {
 				return code[index];

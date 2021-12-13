@@ -30,8 +30,10 @@ public class DefaultInputs implements ActionTrigger {
 		actions.put("A+ENTER", INSERT_NEW_LINE_BELLOW);
 		actions.put("C+E", DELETE_LINE);
 		actions.put("CS+E", DELETE_LINE_CONTENT);
+		actions.put("CS+U", TO_UPPER_CASE);
+		actions.put("CS+L", TO_LOWER_CASE);
 	}
-	
+
 	@Override
 	public Map<String, Action> getActions() {
 		return actions;
@@ -49,7 +51,7 @@ public class DefaultInputs implements ActionTrigger {
 		public void actionPerformed(ActionEvent e) {
 			deleteLineContent(editor.getTextArea().getCaretLine());
 		}
-	};	
+	};
 
 	private final Action DUPLICATE_UP = new AbstractAction() {
 		@Override
@@ -78,7 +80,7 @@ public class DefaultInputs implements ActionTrigger {
 			moveLines(false);
 		}
 	};
-	
+
 	private final Action INSERT_NEW_LINE_BELLOW = new AbstractAction() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
@@ -97,6 +99,26 @@ public class DefaultInputs implements ActionTrigger {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			handleTabulation(true);
+		}
+	};
+
+	private final Action TO_UPPER_CASE = new AbstractAction() {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if (editor.isSelectionActive()) {
+				String modifiedText = editor.getSelectedText().toUpperCase();
+				editor.setSelectedText(modifiedText);
+			}
+		}
+	};
+
+	private final Action TO_LOWER_CASE = new AbstractAction() {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if (editor.isSelectionActive()) {
+				String modifiedText = editor.getSelectedText().toLowerCase();
+				editor.setSelectedText(modifiedText);
+			}
 		}
 	};
 
@@ -176,13 +198,14 @@ public class DefaultInputs implements ActionTrigger {
 
 		int newSelectionStart, newSelectionEnd;
 
-		// swap lines
+		// SWAP LINES
 		if (moveUp) {
 			editor.setSelection(target_start, s.getEnd());
 			editor.setSelectedText(selectedText + NL + replacedText);
 
 			newSelectionStart = editor.getLineStartOffset(targetLine);
 			newSelectionEnd = editor.getLineStopOffset(s.getEndLine() - 1) - 1;
+
 		} else {
 			editor.setSelection(s.getStart(), target_end);
 			editor.setSelectedText(replacedText + NL + selectedText);
@@ -191,41 +214,39 @@ public class DefaultInputs implements ActionTrigger {
 			newSelectionEnd = editor.getLineStopOffset(targetLine) - 1;
 		}
 
-		// update selection
+		// UPDATE SELECTION
 		editor.setSelection(newSelectionStart, newSelectionEnd);
-		
-		s = new Selection(editor);
-		
-		String lineText = editor.getLineText(s.getStartLine());
-		
-//		if (lineText.matches(BLOCK_OPENING) || lineText.matches(BLOCK_CLOSING)) {
-//			System.out.println("brace!!! - " + lineText);		
-//			editor.stopCompoundEdit();
-//			return;
-//		}
-		
-		int brace = EditorUtil.getMatchingBraceLine(s.getStartLine(), true);
-		int blockIndentation = 0;
 
-		if (brace != -1) { // an opening brace was found, we are in a block scope
-			blockIndentation = EditorUtil.getLineIndentation(brace) + TAB_SIZE;
-		} 
-				
-		boolean isBrace =  (lineText.matches(BLOCK_OPENING) || lineText.matches(BLOCK_CLOSING));
-		
-		int selectionIndent = EditorUtil.getLineIndentation(isBrace ? s.getStartLine() - 1: s.getStartLine());
-		
-		System.out.println("brace line: " + brace
-				+ " - blockIndentation: " + blockIndentation 
-				+ " - selection indent: " + selectionIndent
-				+ " - s.getStartLine(): " + (isBrace ? s.getStartLine() - 1: s.getStartLine()));
-		
-		if (selectionIndent < blockIndentation) {
-			editor.handleIndent();
-			
-		} else if (selectionIndent > blockIndentation) {
-			editor.handleOutdent();
+		// RESOLVE INDENTATION
+		s = new Selection(editor);
+
+		int line = s.getStartLine();
+		String lineText = editor.getLineText(line);
+
+		int blockIndent = 0;
+		int brace = EditorUtil.getMatchingBraceLineAlt(line);
+
+		if (brace != -1) {
+			if (lineText.matches(BLOCK_OPENING)) {
+				brace = EditorUtil.getMatchingBraceLineAlt(line);
+				blockIndent = EditorUtil.getLineIndentation(brace) + TAB_SIZE;
+
+			} else if (lineText.matches(BLOCK_CLOSING)) {
+				brace = EditorUtil.getMatchingBraceLine(line, true);
+				blockIndent = EditorUtil.getLineIndentation(brace);
+
+			} else  {
+				blockIndent = EditorUtil.getLineIndentation(brace) + TAB_SIZE;
+			}
 		}
+
+		int selectionIndent = EditorUtil.getLineIndentation(lineText);
+		
+		if (selectionIndent < blockIndent)
+			editor.handleIndent();
+
+		else if (selectionIndent > blockIndent)
+			editor.handleOutdent();
 
 		editor.stopCompoundEdit();
 	}
@@ -283,4 +304,18 @@ public class DefaultInputs implements ActionTrigger {
 			editor.setSelectedText("\t");
 		}
 	}
+
 }
+
+//void setup() {
+//	size(900, 600);
+//
+//	if (true) {
+//		String str1 = "atirei o pau no";
+//
+//    }
+//}
+//
+//void draw() {
+//	background(255);
+//}

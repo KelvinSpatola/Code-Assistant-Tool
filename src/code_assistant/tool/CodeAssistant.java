@@ -76,11 +76,12 @@ public class CodeAssistant implements Tool, ActionTrigger {
 		System.out.println(TOOL_NAME + " v. ##tool.prettyVersion## by Kelvin Spatola.");
 
 		if (!isRunning) {
-			editor.statusNotice(TOOL_NAME + " is already active.");			
 			isRunning = true;
+			editor.statusNotice(TOOL_NAME + " is running.");		
+			
 		} else {
 			editor.statusNotice(TOOL_NAME + " is already active.");
-		}
+		}		
 	}
 	
 	@Override
@@ -93,7 +94,7 @@ public class CodeAssistant implements Tool, ActionTrigger {
 				Platform.openURL(Constants.WEBSITE);
 			}
 		});
-
+		
 		return actions;
 	}
 }
