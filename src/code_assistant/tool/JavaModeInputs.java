@@ -315,33 +315,46 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 
 		if (editor.isSelectionActive()) {
 			String code = editor.getText();
-
-			if (code.charAt(start - 1) == OPEN_BRACE && code.charAt(end) == CLOSE_BRACE) {
+			
+			int lastLineOfSelection = editor.getTextArea().getSelectionStopLine();			
+			boolean isLastBlock = (editor.getSelectionStop() == editor.getLineStartOffset(lastLineOfSelection));
+			
+			if (isLastBlock) {
+				end = editor.getLineStopOffset(lastLineOfSelection) - 1;
+				editor.setSelection(s.getStart(), end);
+				return;
+				
+			} else if (code.charAt(start - 1) == OPEN_BRACE && code.charAt(end) == CLOSE_BRACE) {		
+				editor.setSelection(s.getStart(), s.getEnd());
+				return;
+				
+			} else if (start == s.getStart() && end == s.getEnd()) {
 				startLine--;
-				endLine++;
+				endLine++;	
+				
 			}
 		}
 
 		// go up and search for the corresponding open brace
-		int matchingLine = EditorUtil.getMatchingBraceLine(startLine, true);
+		int brace = EditorUtil.getMatchingBraceLine(startLine, true);
 
 		// open brace not found
-		if (matchingLine == -1) {
+		if (brace == -1) {
 			return;
 		}
 
-		int lineEnd = editor.getLineStopOffset(matchingLine) - 1;
+		int lineEnd = editor.getLineStopOffset(brace) - 1;
 		start = EditorUtil.getOffsetOfPrevious(OPEN_BRACE, lineEnd) + 1;
 
 		// now go down and search for the corresponding close brace
-		matchingLine = EditorUtil.getMatchingBraceLine(endLine, false);
+		brace = EditorUtil.getMatchingBraceLine(endLine, false);
 
 		// close brace not found
-		if (matchingLine == -1) {
+		if (brace == -1) {
 			return;
 		}
 
-		lineEnd = editor.getLineStopOffset(matchingLine) - 1;
+		lineEnd = editor.getLineStopOffset(brace) - 1;
 		end = EditorUtil.getOffsetOfPrevious(CLOSE_BRACE, lineEnd);
 
 		editor.setSelection(start, end);

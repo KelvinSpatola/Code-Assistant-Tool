@@ -108,6 +108,7 @@ public class DefaultInputs implements ActionTrigger {
 			changeCase(true);
 		}
 	};
+	
 
 	private final Action TO_LOWER_CASE = new AbstractAction() {
 		@Override
@@ -225,7 +226,7 @@ public class DefaultInputs implements ActionTrigger {
 		int blockIndent = 0;
 		int brace = EditorUtil.getMatchingBraceLineAlt(line);
 
-		if (brace != -1) {
+		if (brace != -1) { // if we are inside a block...
 			if (lineText.matches(BLOCK_OPENING)) {
 				brace = EditorUtil.getMatchingBraceLineAlt(line);
 				blockIndent = EditorUtil.getLineIndentation(brace) + TAB_SIZE;
@@ -319,16 +320,3 @@ public class DefaultInputs implements ActionTrigger {
 	}
 
 }
-
-//void setup() {
-//	size(900, 600);
-//
-//	if (true) {
-//		String str1 = "atirei o pau no";
-//
-//    }
-//}
-//
-//void draw() {
-//	background(255);
-//}

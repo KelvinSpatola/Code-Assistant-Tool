@@ -80,7 +80,7 @@ public final class EditorUtil {
 		}
 
 		int blockDepth = 1;
-
+		
 		if (goUp) {
 
 			if (editor.getLineText(lineIndex).matches(BLOCK_CLOSING)) {
