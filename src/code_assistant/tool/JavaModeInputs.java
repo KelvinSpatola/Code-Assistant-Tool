@@ -34,7 +34,7 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 		EditorUtil.init(editor);
 
 		actions.put("ENTER", HANDLE_ENTER);
-		actions.put("CA+RIGHT", SELECT_BLOCK);
+		actions.put("CA+RIGHT", EXPAND_SELECTION);
 		actions.put("C+T", FORMAT_SELECTED_TEXT);
 	}
 
@@ -93,10 +93,10 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 		}
 	};
 
-	private final Action SELECT_BLOCK = new AbstractAction() {
+	private final Action EXPAND_SELECTION = new AbstractAction() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			selectBlockOfCode();
+			expandSelection();
 		}
 	};
 
@@ -301,7 +301,7 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 		}
 	}
 
-	private void selectBlockOfCode() {
+	private void expandSelection() {
 		final char OPEN_BRACE = '{';
 		final char CLOSE_BRACE = '}';
 
@@ -372,7 +372,7 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 			String selectedText;
 
 			// long string literals are formatted here
-			if (Preferences.getBoolean("code_assistant.auto_format.strings")) {
+			if (Preferences.getBoolean("code_assistant.autoformat.strings")) {
 				selectedText = refactorStringLiterals(s.getText());
 			} else {
 				selectedText = s.getText();
@@ -391,7 +391,7 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 
 			formattedText = EditorUtil.indentText(formattedText, indent);
 
-			if (selectedText.equals(formattedText.stripTrailing())) {
+			if (formattedText.equals(selectedText)) {
 				editor.statusNotice(Language.text("editor.status.autoformat.no_changes"));
 
 			} else {
@@ -427,7 +427,7 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 	}
 
 	private String refactorStringLiterals(String text) {
-		int maxLength = Preferences.getInteger("code_assistant.auto_format.line_length");
+		int maxLength = Preferences.getInteger("code_assistant.autoformat.line_length");
 
 		List<String> lines = new ArrayList<>(Arrays.asList(text.split(NL)));
 		int depth = 0;

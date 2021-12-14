@@ -8,9 +8,9 @@ public final class ToolPreferences {
 
 	static public void init() {
 		// set default attributes
-		set("code_assistant.auto_format.strings", "true");
-		set("code_assistant.auto_format.comments", "true");
-		set("code_assistant.auto_format.line_length", "80");
+		set("code_assistant.autoformat.strings", "true");
+		set("code_assistant.autoformat.comments", "true");
+		set("code_assistant.autoformat.line_length", "80");
 
 		set("code_assistant.move_lines.auto_indent", "true");
 	}
