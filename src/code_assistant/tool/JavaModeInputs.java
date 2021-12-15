@@ -1,8 +1,6 @@
 package code_assistant.tool;
 
-import static code_assistant.util.Constants.NL;
-import static code_assistant.util.Constants.TAB;
-import static code_assistant.util.Constants.TAB_SIZE;
+import static code_assistant.util.Constants.*;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -26,6 +24,12 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 	static final String STRING_TEXT = "^(?!(.*?(\\*|\\/+).*?\\\".*\\\")).*(?:\\\".*){2}";
 	static final String SPLIT_STRING_TEXT = "^\\h*\\+\\s*(?:\\\".*){2}";
 
+	private enum Context {
+		STRING, COMMENT, BLOCK_OPENING
+	};
+
+	protected Context context = null;
+
 	protected Map<String, Action> actions = new HashMap<>();
 	protected Editor editor;
 
@@ -42,7 +46,7 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 	public Map<String, Action> getActions() {
 		return actions;
 	}
-	
+
 	@Override
 	public boolean handlePressed(KeyEvent e) {
 		if (e.getKeyChar() == '}') {
@@ -85,7 +89,7 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 	/*
 	 * ******** ACTIONS ********
 	 */
-	
+
 	private final Action FORMAT_SELECTED_TEXT = new AbstractAction("format-selected-text") {
 		@Override
 		public void actionPerformed(ActionEvent e) {
@@ -108,69 +112,57 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 	};
 
 	/*
-
-	/*
 	 * ******** METHODS ********
 	 */
 
 	private void handleEnter() {
+		int caretPos = EditorUtil.caretPositionInsideLine();
 		int caretLine = editor.getTextArea().getCaretLine();
 		String lineText = editor.getLineText(caretLine);
 
-		boolean matches_a_string = lineText.matches(STRING_TEXT);
-		boolean matches_a_comment = lineText.matches(COMMENT_TEXT);
+		if (lineText.matches(STRING_TEXT)) {
+			int stringStart = lineText.indexOf("\"");
+			int stringStop = lineText.lastIndexOf("\"") + 1;
 
-		// if it's neither a string nor a comment
-		if (!matches_a_string && !matches_a_comment) {
-
-//			if (lineText.matches("^.*?\\{\\s*\\}?\\h*$")) {
-//				editor.startCompoundEdit();
-//				editor.insertText("\n" + Util.addSpaces(Util.getLineIndentation(caretLine) + TAB));
-//				int newCaret = editor.getCaretOffset();
-//
-//				editor.insertText("\n" + Util.addSpaces(Util.getLineIndentation(caretLine)));
-//				editor.setSelection(newCaret, newCaret);
-//				editor.stopCompoundEdit();
-//			} else {
-//				insertNewLineBellowCurrentLine(caretLine);
-//			}
-
-			handleNewLine();
-			return;
-		}
-
-		int stringStart = lineText.indexOf("\"");
-		int stringStop = lineText.lastIndexOf("\"") + 1;
-		int commentStart = lineText.indexOf("/*");
-		int commentStop = (lineText.contains("*/") ? lineText.indexOf("*/") : lineText.length()) + 2;
-
-		int caretPos = EditorUtil.caretPositionInsideLine();
-		boolean isString = matches_a_string && (caretPos > stringStart && caretPos < stringStop);
-		boolean isComment = matches_a_comment && (caretPos > commentStart && caretPos < commentStop);
-
-		/*
-		 * We gotta check if this line starts with a "*" that doesn't come from a
-		 * comment. The only way to do this is by checking if the previous line of text
-		 * is a comment line.
-		 */
-		if (isComment && !lineText.contains("/*")) {
-			String prevLine = editor.getLineText(caretLine - 1);
-
-			if (!prevLine.matches(COMMENT_TEXT) || prevLine.contains("*/")) {
-				isComment = false;
+			if (caretPos > stringStart && caretPos < stringStop) {
+				splitString(caretLine);
+				return;
 			}
 		}
 
-		// finally ...
+		if (lineText.matches(COMMENT_TEXT)) {
+			if (!lineText.contains("/*")) {
+				int line = caretLine - 1;
 
-		if (isString)
-			splitString(caretLine);
+				while (line >= 0) {
+					if (!editor.getLineText(line).matches(COMMENT_TEXT)) 
+						break;
+					line--;
+				}
+				if (!editor.getLineText(line + 1).contains("/*")) {
+					insertNewLine();
+					return;
+				}
+			}
+			int commentStart = lineText.indexOf("/*");
+			int commentStop = (lineText.contains("*/") ? lineText.indexOf("*/") : lineText.length()) + 2;
 
-		else if (isComment)
-			splitComment(caretLine);
+			if (caretPos > commentStart && caretPos < commentStop) {
+				splitComment(caretLine);
+				return;
+			}
+		}
 
-		else
-			handleNewLine();
+		if (lineText.matches(BLOCK_OPENING)) {
+			int blockStart = lineText.indexOf("{");
+
+			if (caretPos >= blockStart) {
+				createBlockScope(caretLine);
+				return;
+			}
+		}
+		// if none of the above, then insert a new line
+		insertNewLine();
 	}
 
 	private void splitString(int caretLine) {
@@ -192,9 +184,7 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 		int caretPos = editor.getCaretOffset();
 		String nextText = editor.getText().substring(caretPos);
 
-		/*
-		 * Checking if we need to close this comment
-		 */
+		// Checking if we need to close this comment
 		int openingToken = nextText.indexOf("/*");
 		int closingToken = nextText.indexOf("*/");
 		boolean commentIsOpen = (closingToken == -1) || (closingToken > openingToken && openingToken != -1);
@@ -207,11 +197,32 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 		editor.stopCompoundEdit();
 	}
 
-	private void createBlockScope() {
+	private void createBlockScope(int caretLine) {
+		println("isBlock");
 
+		char[] code = editor.getText().toCharArray();
+		int index = editor.getCaretOffset();
+
+		while (index < code.length) {
+			if (!Character.isWhitespace(code[index])) {
+				break;
+			}
+			index++;
+		}
+
+		if (code[index] != '}') {
+			int indent = EditorUtil.getLineIndentation(caretLine) + TAB_SIZE;
+			editor.startCompoundEdit();
+			editor.insertText("\n" + EditorUtil.addSpaces(indent));
+			int newCaret = editor.getCaretOffset();
+
+			editor.insertText("\n" + EditorUtil.addSpaces(indent - TAB_SIZE) + '}');
+			editor.setSelection(newCaret, newCaret);
+			editor.stopCompoundEdit();
+		}
 	}
 
-	private void handleNewLine() {
+	private void insertNewLine() {
 		char[] code = editor.getText().toCharArray();
 
 		if (Preferences.getBoolean("editor.indent")) {
@@ -315,23 +326,23 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 
 		if (editor.isSelectionActive()) {
 			String code = editor.getText();
-			
-			int lastLineOfSelection = editor.getTextArea().getSelectionStopLine();			
+
+			int lastLineOfSelection = editor.getTextArea().getSelectionStopLine();
 			boolean isLastBlock = (editor.getSelectionStop() == editor.getLineStartOffset(lastLineOfSelection));
-			
+
 			if (isLastBlock) {
 				end = editor.getLineStopOffset(lastLineOfSelection) - 1;
 				editor.setSelection(s.getStart(), end);
 				return;
-				
-			} else if (code.charAt(start - 1) == OPEN_BRACE && code.charAt(end) == CLOSE_BRACE) {		
+
+			} else if (code.charAt(start - 1) == OPEN_BRACE && code.charAt(end) == CLOSE_BRACE) {
 				editor.setSelection(s.getStart(), s.getEnd());
 				return;
-				
+
 			} else if (start == s.getStart() && end == s.getEnd()) {
 				startLine--;
-				endLine++;	
-				
+				endLine++;
+
 			}
 		}
 

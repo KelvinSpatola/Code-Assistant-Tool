@@ -226,7 +226,7 @@ public class DefaultInputs implements ActionTrigger {
 		int blockIndent = 0;
 		int brace = EditorUtil.getMatchingBraceLineAlt(line);
 
-		if (brace != -1) { // if we are inside a block...
+		if (brace != -1) { // we are inside a block here
 			if (lineText.matches(BLOCK_OPENING)) {
 				brace = EditorUtil.getMatchingBraceLineAlt(line);
 				blockIndent = EditorUtil.getLineIndentation(brace) + TAB_SIZE;

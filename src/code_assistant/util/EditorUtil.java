@@ -18,7 +18,7 @@ public final class EditorUtil {
 		char[] chars = lineText.toCharArray();
 		int index = 0;
 
-		while (Character.isWhitespace(chars[index])) {
+		while (index < chars.length && Character.isWhitespace(chars[index])) {
 			index++;
 		}
 		return index;
@@ -195,11 +195,15 @@ public final class EditorUtil {
 		return -1;
 	}
 
-	/**
-	 * Returns the previous non-white character
-	 *
-	 * @return the previous non-white character
-	 */
+	
+	static public char prevChar() {
+		return prevChar(editor.getText(), editor.getCaretOffset() - 1);
+	}
+	
+	static public char prevChar(int index) {
+		return prevChar(editor.getText(), index);
+	}
+
 	static public char prevChar(String text, int index) {
 		char[] code = text.toCharArray();
 
@@ -210,21 +214,5 @@ public final class EditorUtil {
 			index--;
 		}
 		return Character.UNASSIGNED;
-	}
-
-	static public char prevChar(int index) {
-		char[] code = editor.getText().toCharArray();
-
-		while (index >= 0) {
-			if (!Character.isWhitespace(code[index])) {
-				return code[index];
-			}
-			index--;
-		}
-		return Character.UNASSIGNED;
-	}
-
-	static public char prevChar() {
-		return prevChar(editor.getCaretOffset() - 1);
 	}
 }
