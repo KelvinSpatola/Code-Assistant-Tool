@@ -186,7 +186,7 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 		insertNewLine();
 	}
 	
-
+    
 	private void splitString(int caretLine) {
 		int indent = EditorUtil.getLineIndentation(caretLine);
 		if (!editor.getLineText(caretLine).matches(SPLIT_STRING_TEXT))
