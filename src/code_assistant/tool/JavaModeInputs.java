@@ -17,6 +17,7 @@ import code_assistant.util.EditorUtil;
 import code_assistant.util.Selection;
 import processing.app.Language;
 import processing.app.Preferences;
+import processing.app.syntax.Brackets;
 import processing.app.ui.Editor;
 
 public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
@@ -120,6 +121,20 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 		int caretLine = editor.getTextArea().getCaretLine();
 		String lineText = editor.getLineText(caretLine);
 
+//		void setup() {
+//		
+//		if (true) {
+//			
+//		}
+//		
+//		while(true) { #				
+//			
+//		}	
+//		if (true) {
+//			
+//		}
+//	}
+
 		if (lineText.matches(STRING_TEXT)) {
 			int stringStart = lineText.indexOf("\"");
 			int stringStop = lineText.lastIndexOf("\"") + 1;
@@ -135,7 +150,7 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 				int line = caretLine - 1;
 
 				while (line >= 0) {
-					if (!editor.getLineText(line).matches(COMMENT_TEXT)) 
+					if (!editor.getLineText(line).matches(COMMENT_TEXT))
 						break;
 					line--;
 				}
@@ -154,16 +169,23 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 		}
 
 		if (lineText.matches(BLOCK_OPENING)) {
-			int blockStart = lineText.indexOf("{");
+			if (caretPos >= lineText.indexOf("{")) {		
 
-			if (caretPos >= blockStart) {
-				createBlockScope(caretLine);
-				return;
+//				int closingBrace = EditorUtil.getMatchingBraceLine(caretLine, false);
+//				// in case this block has not yet a closing brace, let's give it one
+//				if (closingBrace == -1) { 
+//					println("good");
+//					createBlockScope(caretLine);
+//					return;
+//				}				
 			}
 		}
+		println("current bolck depth: " + EditorUtil.getBlockDepth(caretLine));
+		
 		// if none of the above, then insert a new line
 		insertNewLine();
 	}
+	
 
 	private void splitString(int caretLine) {
 		int indent = EditorUtil.getLineIndentation(caretLine);
@@ -288,19 +310,19 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 
 			// not gonna bother handling more than one brace
 			if (braceCount > 0) {
-				System.out.println("1");
+				//System.out.println("1");
 				int selectionStart = editor.getSelectionStart();
 
 				if (selectionStart - TAB_SIZE >= 0) {
-					System.out.println("2");
+					//System.out.println("2");
 					editor.setSelection(selectionStart - TAB_SIZE, selectionStart);
 
 					// if these are spaces that we can delete
 					if (editor.getSelectedText().equals(TAB)) {
-						System.out.println("3");
+						//System.out.println("3");
 						editor.setSelectedText("");
 					} else {
-						System.out.println("4");
+						//System.out.println("4");
 						editor.setSelection(selectionStart, selectionStart);
 					}
 				}

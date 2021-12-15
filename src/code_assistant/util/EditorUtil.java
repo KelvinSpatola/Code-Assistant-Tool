@@ -2,6 +2,7 @@ package code_assistant.util;
 
 import static code_assistant.util.Constants.*;
 
+import processing.app.syntax.Brackets;
 import processing.app.ui.Editor;
 
 public final class EditorUtil {
@@ -70,6 +71,65 @@ public final class EditorUtil {
 		return sb.toString();
 	}
 
+	static public int getBlockDepth(int line) {
+		if (line < 0 || line > editor.getLineCount() - 1)
+			return 0;
+
+		int depthUp = 0;
+		int depthDown = 0;
+		int lineIndex = line;
+
+		boolean isTheFirstBlock = true;
+
+		while (lineIndex >= 0) {
+			String lineText = editor.getLineText(lineIndex);
+
+			if (lineText.matches(BLOCK_OPENING)) {
+				depthUp++;
+			}
+
+			else if (lineText.matches(BLOCK_CLOSING)) {
+				depthUp--;
+				isTheFirstBlock = false;
+			}
+
+			lineIndex--;
+		}
+
+		lineIndex = line;
+		boolean isTheLastBlock = true;
+
+		if (editor.getLineText(lineIndex).matches(BLOCK_OPENING)) {
+			depthDown = 1;
+		}
+
+		while (lineIndex < editor.getLineCount()) {
+			String lineText = editor.getLineText(lineIndex);
+
+			if (lineText.matches(BLOCK_CLOSING))
+				depthDown++;
+
+			else if (lineText.matches(BLOCK_OPENING)) {
+				depthDown--;
+				isTheLastBlock = false;
+			}
+
+			lineIndex++;
+		}
+		
+		isTheFirstBlock &= (depthUp == 1 && depthDown == 0);
+		isTheLastBlock &= (depthDown == 1 && depthUp == 0);
+				
+		if (isTheFirstBlock && isTheLastBlock)
+			return 0;
+		if (isTheFirstBlock || isTheLastBlock)
+			return 1;
+		
+		return Math.max(0, Math.min(depthUp, depthDown));
+	}
+
+	// static boolean
+
 	static public int getMatchingBraceLine(boolean goUp) {
 		return getMatchingBraceLine(editor.getTextArea().getCaretLine(), goUp);
 	}
@@ -80,7 +140,7 @@ public final class EditorUtil {
 		}
 
 		int blockDepth = 1;
-		
+
 		if (goUp) {
 
 			if (editor.getLineText(lineIndex).matches(BLOCK_CLOSING)) {
@@ -195,11 +255,10 @@ public final class EditorUtil {
 		return -1;
 	}
 
-	
 	static public char prevChar() {
 		return prevChar(editor.getText(), editor.getCaretOffset() - 1);
 	}
-	
+
 	static public char prevChar(int index) {
 		return prevChar(editor.getText(), index);
 	}
