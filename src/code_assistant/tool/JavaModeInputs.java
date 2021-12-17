@@ -25,12 +25,6 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 	static final String STRING_TEXT = "^(?!(.*?(\\*|\\/+).*?\\\".*\\\")).*(?:\\\".*){2}";
 	static final String SPLIT_STRING_TEXT = "^\\h*\\+\\s*(?:\\\".*){2}";
 
-	private enum Context {
-		STRING, COMMENT, BLOCK_OPENING
-	};
-
-	protected Context context = null;
-
 	protected Map<String, Action> actions = new HashMap<>();
 	protected Editor editor;
 
@@ -121,20 +115,6 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 		int caretLine = editor.getTextArea().getCaretLine();
 		String lineText = editor.getLineText(caretLine);
 
-//		void setup() {
-//		
-//		if (true) {
-//			
-//		}
-//		
-//		while(true) { #				
-//			
-//		}	
-//		if (true) {
-//			
-//		}
-//	}
-
 		if (lineText.matches(STRING_TEXT)) {
 			int stringStart = lineText.indexOf("\"");
 			int stringStop = lineText.lastIndexOf("\"") + 1;
@@ -169,24 +149,18 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 		}
 
 		if (lineText.matches(BLOCK_OPENING)) {
-			if (caretPos >= lineText.indexOf("{")) {		
+			boolean curlyBracesAreBalanced = EditorUtil.checkBracketsBalance(editor.getText(), "{", "}");
 
-//				int closingBrace = EditorUtil.getMatchingBraceLine(caretLine, false);
-//				// in case this block has not yet a closing brace, let's give it one
-//				if (closingBrace == -1) { 
-//					println("good");
-//					createBlockScope(caretLine);
-//					return;
-//				}				
+			if (!curlyBracesAreBalanced && caretPos >= lineText.indexOf("{")) {
+				createBlockScope(caretLine);
+				return;
 			}
 		}
-		println("current bolck depth: " + EditorUtil.getBlockDepth(caretLine));
-		
+
 		// if none of the above, then insert a new line
 		insertNewLine();
 	}
-	
-    
+
 	private void splitString(int caretLine) {
 		int indent = EditorUtil.getLineIndentation(caretLine);
 		if (!editor.getLineText(caretLine).matches(SPLIT_STRING_TEXT))
@@ -220,28 +194,17 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 	}
 
 	private void createBlockScope(int caretLine) {
-		println("isBlock");
-
-		char[] code = editor.getText().toCharArray();
 		int index = editor.getCaretOffset();
+		int indent = EditorUtil.getLineIndentation(caretLine) + TAB_SIZE;
+		
+		editor.startCompoundEdit();
+		editor.insertText("\n" + EditorUtil.addSpaces(indent));
+		int newCaret = editor.getLineStopOffset(caretLine + 1) - 1;
+		editor.setSelection(newCaret, newCaret);
 
-		while (index < code.length) {
-			if (!Character.isWhitespace(code[index])) {
-				break;
-			}
-			index++;
-		}
-
-		if (code[index] != '}') {
-			int indent = EditorUtil.getLineIndentation(caretLine) + TAB_SIZE;
-			editor.startCompoundEdit();
-			editor.insertText("\n" + EditorUtil.addSpaces(indent));
-			int newCaret = editor.getCaretOffset();
-
-			editor.insertText("\n" + EditorUtil.addSpaces(indent - TAB_SIZE) + '}');
-			editor.setSelection(newCaret, newCaret);
-			editor.stopCompoundEdit();
-		}
+		editor.insertText("\n" + EditorUtil.addSpaces(indent - TAB_SIZE) + '}');
+		editor.setSelection(newCaret, newCaret);
+		editor.stopCompoundEdit();
 	}
 
 	private void insertNewLine() {
@@ -310,19 +273,19 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 
 			// not gonna bother handling more than one brace
 			if (braceCount > 0) {
-				//System.out.println("1");
+				// System.out.println("1");
 				int selectionStart = editor.getSelectionStart();
 
 				if (selectionStart - TAB_SIZE >= 0) {
-					//System.out.println("2");
+					// System.out.println("2");
 					editor.setSelection(selectionStart - TAB_SIZE, selectionStart);
 
 					// if these are spaces that we can delete
 					if (editor.getSelectedText().equals(TAB)) {
-						//System.out.println("3");
+						// System.out.println("3");
 						editor.setSelectedText("");
 					} else {
-						//System.out.println("4");
+						// System.out.println("4");
 						editor.setSelection(selectionStart, selectionStart);
 					}
 				}

@@ -2,6 +2,9 @@ package code_assistant.util;
 
 import static code_assistant.util.Constants.*;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+
 import processing.app.syntax.Brackets;
 import processing.app.ui.Editor;
 
@@ -225,6 +228,28 @@ public final class EditorUtil {
 		}
 		return -1;
 	}
+	
+	static public boolean checkBracketsBalance(String text, String leftBrackets, String rightBrackets) {
+        // Using ArrayDeque is faster than using Stack class
+        Deque<Character> stack = new ArrayDeque<>();
+
+        for (char ch : text.toCharArray()) {
+            // if current character is a left bracket, push it to the stack
+            if (leftBrackets.contains(String.valueOf(ch))) {
+                stack.push(ch);
+                continue;
+            }
+            if (rightBrackets.contains(String.valueOf(ch))) {
+                if (stack.isEmpty())
+                    return false;
+
+                var top = stack.pop();
+                if (leftBrackets.indexOf(top) != rightBrackets.indexOf(ch))
+                    return false;
+            }
+        }
+        return stack.isEmpty();
+    }
 
 	static public String addSpaces(int length) {
 		if (length <= 0)
