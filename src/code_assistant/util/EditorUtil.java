@@ -131,8 +131,6 @@ public final class EditorUtil {
 		return Math.max(0, Math.min(depthUp, depthDown));
 	}
 
-	// static boolean
-
 	static public int getMatchingBraceLine(boolean goUp) {
 		return getMatchingBraceLine(editor.getTextArea().getCaretLine(), goUp);
 	}
@@ -197,7 +195,8 @@ public final class EditorUtil {
 		}
 		return -1;
 	}
-
+	
+	// HACK
 	static public int getMatchingBraceLineAlt(int lineIndex) {
 		if (lineIndex < 0) {
 			return -1;
@@ -234,8 +233,8 @@ public final class EditorUtil {
         Deque<Character> stack = new ArrayDeque<>();
 
         for (char ch : text.toCharArray()) {
-            // if current character is a left bracket, push it to the stack
-            if (leftBrackets.contains(String.valueOf(ch))) {
+
+        	if (leftBrackets.contains(String.valueOf(ch))) {
                 stack.push(ch);
                 continue;
             }

@@ -108,7 +108,6 @@ public class DefaultInputs implements ActionTrigger {
 			changeCase(true);
 		}
 	};
-	
 
 	private final Action TO_LOWER_CASE = new AbstractAction() {
 		@Override
@@ -258,28 +257,31 @@ public class DefaultInputs implements ActionTrigger {
 		int indent = 0;
 		int caretPos = EditorUtil.caretPositionInsideLine();
 
-		if (lineText.matches(BLOCK_OPENING)) {
-			indent = EditorUtil.getLineIndentation(line);
+		if (Preferences.getBoolean("editor.indent")) {
+			
+			if (lineText.matches(BLOCK_OPENING)) {
+				indent = EditorUtil.getLineIndentation(line);
 
-			if (caretPos > lineText.indexOf('{'))
-				indent += TAB_SIZE;
+				if (caretPos > lineText.indexOf('{'))
+					indent += TAB_SIZE;
 
-		} else if (lineText.matches(BLOCK_CLOSING)) {
-			indent = EditorUtil.getLineIndentation(line);
-			int closeBrace = lineText.indexOf('}');
+			} else if (lineText.matches(BLOCK_CLOSING)) {
+				indent = EditorUtil.getLineIndentation(line);
+				int closeBrace = lineText.indexOf('}');
 
-			if (caretPos <= closeBrace) {
-				offset += (closeBrace - caretPos);
-				editor.setSelection(offset, offset);
-				editor.insertText(TAB);
-				offset += TAB_SIZE;
+				if (caretPos <= closeBrace) {
+					offset += (closeBrace - caretPos);
+					editor.setSelection(offset, offset);
+					editor.insertText(TAB);
+					offset += TAB_SIZE;
+				}
+
+			} else {
+				int startBrace = EditorUtil.getMatchingBraceLine(line, true);
+
+				if (startBrace != -1) // an opening brace was found, we are in a block scope
+					indent = EditorUtil.getLineIndentation(startBrace) + TAB_SIZE;
 			}
-
-		} else {
-			int startBrace = EditorUtil.getMatchingBraceLine(line, true);
-
-			if (startBrace != -1) // an opening brace was found, we are in a block scope
-				indent = EditorUtil.getLineIndentation(startBrace) + TAB_SIZE;
 		}
 
 		editor.startCompoundEdit();

@@ -162,9 +162,13 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 	}
 
 	private void splitString(int caretLine) {
-		int indent = EditorUtil.getLineIndentation(caretLine);
-		if (!editor.getLineText(caretLine).matches(SPLIT_STRING_TEXT))
-			indent += TAB_SIZE;
+		int indent = 0;
+		if (Preferences.getBoolean("editor.indent")) {
+			indent = EditorUtil.getLineIndentation(caretLine);
+			
+			if (!editor.getLineText(caretLine).matches(SPLIT_STRING_TEXT))
+				indent += TAB_SIZE;
+		}
 
 		editor.stopCompoundEdit();
 		editor.insertText("\"\n" + EditorUtil.addSpaces(indent) + "+ \"");
@@ -172,7 +176,10 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 	}
 
 	private void splitComment(int caretLine) {
-		int indent = EditorUtil.getLineIndentation(caretLine);
+		int indent = 0;
+		if (Preferences.getBoolean("editor.indent")) {
+			indent = EditorUtil.getLineIndentation(caretLine);
+		}
 
 		editor.startCompoundEdit();
 		editor.insertText(NL + EditorUtil.addSpaces(indent - (indent % TAB_SIZE)) + " * ");
@@ -194,14 +201,17 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 	}
 
 	private void createBlockScope(int caretLine) {
-		int indent = EditorUtil.getLineIndentation(caretLine) + TAB_SIZE;
-		
+		int indent = 0;
+		if (Preferences.getBoolean("editor.indent")) {
+			indent = EditorUtil.getLineIndentation(caretLine) + TAB_SIZE;
+		}
+
 		editor.startCompoundEdit();
 		editor.setSelection(editor.getCaretOffset(), editor.getLineStopOffset(caretLine) - 1);
 
-		String cutText = editor.isSelectionActive() ? editor.getSelectedText().trim() : "";		
+		String cutText = editor.isSelectionActive() ? editor.getSelectedText().trim() : "";
 		editor.setSelectedText("\n" + EditorUtil.addSpaces(indent) + cutText);
-		
+
 		int newCaret = editor.getCaretOffset();
 		editor.insertText("\n" + EditorUtil.addSpaces(indent - TAB_SIZE) + '}');
 		editor.setSelection(newCaret, newCaret);
@@ -292,8 +302,6 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 				}
 			}
 		} else {
-			// Enter/Return was being consumed by somehow even if false
-			// was returned, so this is a band-aid to simply fire the event again.
 			editor.setSelectedText(NL);
 		}
 	}
