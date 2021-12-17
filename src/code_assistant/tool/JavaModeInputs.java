@@ -194,14 +194,15 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 	}
 
 	private void createBlockScope(int caretLine) {
-		int index = editor.getCaretOffset();
 		int indent = EditorUtil.getLineIndentation(caretLine) + TAB_SIZE;
 		
 		editor.startCompoundEdit();
-		editor.insertText("\n" + EditorUtil.addSpaces(indent));
-		int newCaret = editor.getLineStopOffset(caretLine + 1) - 1;
-		editor.setSelection(newCaret, newCaret);
+		editor.setSelection(editor.getCaretOffset(), editor.getLineStopOffset(caretLine) - 1);
 
+		String cutText = editor.isSelectionActive() ? editor.getSelectedText().trim() : "";		
+		editor.setSelectedText("\n" + EditorUtil.addSpaces(indent) + cutText);
+		
+		int newCaret = editor.getCaretOffset();
 		editor.insertText("\n" + EditorUtil.addSpaces(indent - TAB_SIZE) + '}');
 		editor.setSelection(newCaret, newCaret);
 		editor.stopCompoundEdit();
