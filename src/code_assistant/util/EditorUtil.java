@@ -49,17 +49,6 @@ public final class EditorUtil {
 		return sb.toString();
 	}
 
-//	static public String indentText(String text, int indent) {
-//		String[] lines = text.split(NL);
-//		StringBuffer sb = new StringBuffer();
-//
-//		for (String line : lines) {
-//			line = line.stripLeading();
-//			sb.append(addSpaces(indent).concat(line).concat(NL));
-//		}
-//		return sb.toString();
-//	}
-
 	static public String outdentText(String text) {
 		String[] lines = text.split(NL);
 		StringBuffer sb = new StringBuffer();
@@ -257,10 +246,13 @@ public final class EditorUtil {
 	}
 
 	static public int caretPositionInsideLine() {
-		int caretOffset = editor.getCaretOffset();
-		int lineStartOffset = editor.getLineStartOffset(editor.getTextArea().getCaretLine());
-
-		return caretOffset - lineStartOffset;
+		return getPositionInsideLineWithOffset(editor.getCaretOffset());
+	}
+	
+	static public int getPositionInsideLineWithOffset(int offset) {
+		int line = editor.getTextArea().getLineOfOffset(offset);		
+		int lineStartOffset = editor.getLineStartOffset(line);
+		return offset - lineStartOffset;
 	}
 
 	static public int getOffsetOfPrevious(char ch) {

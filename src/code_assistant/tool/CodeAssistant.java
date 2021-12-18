@@ -70,7 +70,7 @@ public class CodeAssistant implements Tool, ActionTrigger {
 				javaModeInputs,
 				this);
 		
-		inputHandler.addKeyPressedListeners(javaModeInputs/*, bracketCloser*/);
+		inputHandler.addKeyPressedListeners(javaModeInputs, bracketCloser);
 		editor.getTextArea().setInputHandler(inputHandler);
 
 		System.out.println(TOOL_NAME + " v. ##tool.prettyVersion## by Kelvin Spatola.");

@@ -21,9 +21,11 @@ import processing.app.syntax.Brackets;
 import processing.app.ui.Editor;
 
 public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
-	static final String COMMENT_TEXT = "^(?!.*\\\".*\\/\\*.*\\\")(?:.*\\/\\*.*|\\h*\\*.*)";
-	static final String STRING_TEXT = "^(?!(.*?(\\*|\\/+).*?\\\".*\\\")).*(?:\\\".*){2}";
-	static final String SPLIT_STRING_TEXT = "^\\h*\\+\\s*(?:\\\".*){2}";
+	protected static final String COMMENT_TEXT = "^(?!.*\\\".*\\/\\*.*\\\")(?:.*\\/\\*.*|\\h*\\*.*)";
+	protected static final String STRING_TEXT = "^(?!(.*?(\\*|\\/+).*?\\\".*\\\")).*(?:\\\".*){2}";
+	protected static final String SPLIT_STRING_TEXT = "^\\h*\\+\\s*(?:\\\".*){2}";
+	protected static final char OPEN_BRACE = '{';
+	protected static final char CLOSE_BRACE = '}';
 
 	protected Map<String, Action> actions = new HashMap<>();
 	protected Editor editor;
@@ -37,14 +39,14 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 		actions.put("C+T", FORMAT_SELECTED_TEXT);
 	}
 
-	@Override
+	@Override // from the ActionTrigger interface
 	public Map<String, Action> getActions() {
 		return actions;
 	}
 
-	@Override
+	@Override // from the KeyPressedListener interface
 	public boolean handlePressed(KeyEvent e) {
-		if (e.getKeyChar() == '}') {
+		if (e.getKeyChar() == CLOSE_BRACE) {
 			if (Preferences.getBoolean("editor.indent")) {
 				editor.startCompoundEdit();
 
@@ -111,7 +113,8 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 	 */
 
 	private void handleEnter() {
-		int caretPos = EditorUtil.caretPositionInsideLine();
+		int caret = editor.getCaretOffset();
+		int positionInLine = EditorUtil.getPositionInsideLineWithOffset(caret);
 		int caretLine = editor.getTextArea().getCaretLine();
 		String lineText = editor.getLineText(caretLine);
 
@@ -119,7 +122,7 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 			int stringStart = lineText.indexOf("\"");
 			int stringStop = lineText.lastIndexOf("\"") + 1;
 
-			if (caretPos > stringStart && caretPos < stringStop) {
+			if (positionInLine > stringStart && positionInLine < stringStop) {
 				splitString(caretLine);
 				return;
 			}
@@ -135,37 +138,41 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 					line--;
 				}
 				if (!editor.getLineText(line + 1).contains("/*")) {
-					insertNewLine();
+					insertNewLine(caret);
 					return;
 				}
 			}
 			int commentStart = lineText.indexOf("/*");
 			int commentStop = (lineText.contains("*/") ? lineText.indexOf("*/") : lineText.length()) + 2;
 
-			if (caretPos > commentStart && caretPos < commentStop) {
+			if (positionInLine > commentStart && positionInLine < commentStop) {
 				splitComment(caretLine);
 				return;
 			}
 		}
 
 		if (lineText.matches(BLOCK_OPENING)) {
-			boolean curlyBracesAreBalanced = EditorUtil.checkBracketsBalance(editor.getText(), "{", "}");
+			boolean bracketsAreBalanced = EditorUtil.checkBracketsBalance(editor.getText(), "{", "}");
+			boolean hasClosingBrace = lineText.matches(BLOCK_CLOSING);
+			int openBrace = lineText.indexOf(OPEN_BRACE);
+			int closeBrace = lineText.indexOf(CLOSE_BRACE);
 
-			if (!curlyBracesAreBalanced && caretPos >= lineText.indexOf("{")) {
-				createBlockScope(caretLine);
+			if ((!bracketsAreBalanced && positionInLine > openBrace) || (bracketsAreBalanced && hasClosingBrace
+					&& positionInLine > openBrace && positionInLine <= closeBrace)) {
+
+				createBlockScope(caret);
 				return;
 			}
 		}
-
 		// if none of the above, then insert a new line
-		insertNewLine();
+		insertNewLine(caret);
 	}
 
 	private void splitString(int caretLine) {
 		int indent = 0;
 		if (Preferences.getBoolean("editor.indent")) {
 			indent = EditorUtil.getLineIndentation(caretLine);
-			
+
 			if (!editor.getLineText(caretLine).matches(SPLIT_STRING_TEXT))
 				indent += TAB_SIZE;
 		}
@@ -200,116 +207,63 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 		editor.stopCompoundEdit();
 	}
 
-	private void createBlockScope(int caretLine) {
+	private void createBlockScope(int offset) {
+		int line = editor.getTextArea().getLineOfOffset(offset);
+
 		int indent = 0;
 		if (Preferences.getBoolean("editor.indent")) {
-			indent = EditorUtil.getLineIndentation(caretLine) + TAB_SIZE;
+			indent = EditorUtil.getLineIndentation(line) + TAB_SIZE;
 		}
 
 		editor.startCompoundEdit();
-		editor.setSelection(editor.getCaretOffset(), editor.getLineStopOffset(caretLine) - 1);
+		editor.setSelection(offset, editor.getLineStopOffset(line) - 1);
 
 		String cutText = editor.isSelectionActive() ? editor.getSelectedText().trim() : "";
-		editor.setSelectedText("\n" + EditorUtil.addSpaces(indent) + cutText);
 
-		int newCaret = editor.getCaretOffset();
-		editor.insertText("\n" + EditorUtil.addSpaces(indent - TAB_SIZE) + '}');
-		editor.setSelection(newCaret, newCaret);
+		if (cutText.matches(BLOCK_CLOSING)) {
+			cutText = cutText.replace(CLOSE_BRACE, '\0').trim();
+		}
+
+		editor.setSelectedText(NL + EditorUtil.addSpaces(indent) + cutText);
+
+		int newOffset = editor.getCaretOffset();
+		editor.insertText(NL + EditorUtil.addSpaces(indent - TAB_SIZE) + CLOSE_BRACE);
+		editor.setSelection(newOffset, newOffset);
 		editor.stopCompoundEdit();
 	}
 
-	private void insertNewLine() {
-		char[] code = editor.getText().toCharArray();
+	private void insertNewLine(int offset) {
+		int indent = 0;
+		editor.startCompoundEdit();
 
 		if (Preferences.getBoolean("editor.indent")) {
+			int line = editor.getTextArea().getLineOfOffset(offset);
+			String lineText = editor.getLineText(line);
+			
+			int startBrace = EditorUtil.getMatchingBraceLine(line, true);
 
-			int caretPos = editor.getCaretOffset();
+			if (startBrace != -1) {
+				indent = EditorUtil.getLineIndentation(startBrace);
 
-			// if the previous thing is a brace (whether prev line or
-			// up farther) then the correct indent is the number of spaces
-			// on that line + 'indent'.
-			// if the previous line is not a brace, then just use the
-			// identical indentation to the previous line
-
-			// calculate the amount of indent on the previous line
-			// this will be used *only if the prev line is not an indent*
-			int spaceCount = EditorUtil.getLineIndentationOfOffset(caretPos - 1);
-
-			// Let's check if the last character is an open brace, then indent.
-			int index = caretPos - 1;
-			while ((index >= 0) && Character.isWhitespace(code[index])) {
-				index--;
+				if (!lineText.matches(BLOCK_CLOSING))
+					indent += TAB_SIZE;
+				
+				int positionInLine = EditorUtil.getPositionInsideLineWithOffset(offset);
+				
+				if (lineText.matches(BLOCK_OPENING) && positionInLine <= lineText.indexOf(OPEN_BRACE))
+					indent -= TAB_SIZE;
 			}
-			if (index != -1) {
-				// still won't catch a case where prev stuff is a comment
-				if (code[index] == '{') {
-					// intermediate lines be damned,
-					// use the indent for this line instead
-					spaceCount = EditorUtil.getLineIndentationOfOffset(index);
-					spaceCount += TAB_SIZE;
-				}
-			}
-
-			// now before inserting this many spaces, walk forward from
-			// the caret position and count the number of spaces,
-			// so that the number of spaces aren't duplicated again
-			index = caretPos;
-			int extraSpaceCount = 0;
-			while ((index < code.length) && (code[index] == ' ')) {
-				extraSpaceCount++;
-				index++;
-			}
-			int braceCount = 0;
-			while ((index < code.length) && (code[index] != '\n')) {
-				if (code[index] == '}') {
-					braceCount++;
-				}
-				index++;
-			}
-
-			// Hitting return on a line with spaces *after* the caret
-			// can cause trouble. For 0099, was ignoring the case, but this is
-			// annoying, so in 0122 we're trying to fix that.
-			spaceCount -= extraSpaceCount;
-
-			if (spaceCount < 0) {
-				editor.getTextArea().setSelectionEnd(editor.getSelectionStop() - spaceCount);
-				editor.setSelectedText(NL);
-				editor.getTextArea().setCaretPosition(editor.getCaretOffset() + extraSpaceCount + spaceCount);
-			} else {
-				String insertion = NL + EditorUtil.addSpaces(spaceCount);
-				editor.setSelectedText(insertion);
-				editor.getTextArea().setCaretPosition(editor.getCaretOffset() + extraSpaceCount);
-			}
-
-			// not gonna bother handling more than one brace
-			if (braceCount > 0) {
-				// System.out.println("1");
-				int selectionStart = editor.getSelectionStart();
-
-				if (selectionStart - TAB_SIZE >= 0) {
-					// System.out.println("2");
-					editor.setSelection(selectionStart - TAB_SIZE, selectionStart);
-
-					// if these are spaces that we can delete
-					if (editor.getSelectedText().equals(TAB)) {
-						// System.out.println("3");
-						editor.setSelectedText("");
-					} else {
-						// System.out.println("4");
-						editor.setSelection(selectionStart, selectionStart);
-					}
-				}
-			}
-		} else {
-			editor.setSelectedText(NL);
+			editor.setSelection(offset, editor.getLineStopOffset(line) - 1);
 		}
+		String cutText = editor.isSelectionActive() ? editor.getSelectedText().trim() : "";
+		editor.setSelectedText(NL + EditorUtil.addSpaces(indent) + cutText);
+
+		int newOffset = offset + indent + 1;
+		editor.setSelection(newOffset, newOffset);
+		editor.stopCompoundEdit();
 	}
 
 	private void expandSelection() {
-		final char OPEN_BRACE = '{';
-		final char CLOSE_BRACE = '}';
-
 		int start = editor.getSelectionStart();
 		int end = editor.getSelectionStop();
 
@@ -430,6 +384,7 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 			}
 		}
 	}
+	
 
 	private String refactorStringLiterals(String text) {
 		int maxLength = Preferences.getInteger("code_assistant.autoformat.line_length");
@@ -470,11 +425,5 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 		}
 
 		return result.toString();
-	}
-
-	private static void println(Object... objects) {
-		for (Object o : objects) {
-			System.out.println(o.toString());
-		}
 	}
 }
