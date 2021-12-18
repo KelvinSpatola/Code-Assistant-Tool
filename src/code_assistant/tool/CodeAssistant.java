@@ -65,7 +65,7 @@ public class CodeAssistant implements Tool, ActionTrigger {
 		final BracketCloser bracketCloser = new BracketCloser(editor);
 	
 
-		CodeAssistantInputHandler inputHandler = new CodeAssistantInputHandler(editor,
+		InputManager inputHandler = new InputManager(editor,
 				defaultInputs, 
 				javaModeInputs,
 				this);

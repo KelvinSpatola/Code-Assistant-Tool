@@ -13,11 +13,11 @@ import processing.app.Platform;
 import processing.app.syntax.PdeInputHandler;
 import processing.app.ui.Editor;
 
-public class CodeAssistantInputHandler extends PdeInputHandler {
+public class InputManager extends PdeInputHandler {
 	protected List<KeyPressedListener> keyListeners = new ArrayList<>();
 
 	// CONSTRUCTOR
-	public CodeAssistantInputHandler(Editor editor, ActionTrigger... triggers) {
+	public InputManager(Editor editor, ActionTrigger... triggers) {
 		super(editor);
 
 		for(ActionTrigger trigger : triggers) {
