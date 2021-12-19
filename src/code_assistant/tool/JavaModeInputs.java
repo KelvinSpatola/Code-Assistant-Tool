@@ -20,7 +20,7 @@ import processing.app.Preferences;
 import processing.app.syntax.Brackets;
 import processing.app.ui.Editor;
 
-public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
+public class JavaModeInputs implements ActionTrigger, KeyHandler {
 	protected static final String COMMENT_TEXT = "^(?!.*\\\".*\\/\\*.*\\\")(?:.*\\/\\*.*|\\h*\\*.*)";
 	protected static final String STRING_TEXT = "^(?!(.*?(\\*|\\/+).*?\\\".*\\\")).*(?:\\\".*){2}";
 	protected static final String SPLIT_STRING_TEXT = "^\\h*\\+\\s*(?:\\\".*){2}";
@@ -43,44 +43,46 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 	public Map<String, Action> getActions() {
 		return actions;
 	}
+	
+	/*
+	 * ******** KEY HANDLER  ********
+	 */
 
-	@Override // from the KeyPressedListener interface
+	@Override // from the KeyHandler interface
 	public boolean handlePressed(KeyEvent e) {
 		if (e.getKeyChar() == CLOSE_BRACE) {
+			editor.startCompoundEdit();
+
+			// erase any selection content
+			if (editor.isSelectionActive()) {
+				editor.setSelectedText("");
+			}
+
+			int indent = 0;
+			
 			if (Preferences.getBoolean("editor.indent")) {
-				editor.startCompoundEdit();
-
-				// erase any selection content
-				if (editor.isSelectionActive()) {
-					editor.setSelectedText("");
-				}
-
 				int line = editor.getTextArea().getCaretLine();
 
-				// don't do anything, this line has other stuff on it
-				if (!editor.getLineText(line).isBlank()) {
-					editor.stopCompoundEdit();
-					return false;
+				if (editor.getLineText(line).isBlank()) {
+					int startBrace = EditorUtil.getMatchingBraceLine(line, true);
+					
+					if (startBrace != -1)
+						indent = EditorUtil.getLineIndentation(startBrace);
+					
+					editor.setSelection(editor.getLineStartOffset(line), editor.getCaretOffset());				
 				}
-
-				int startBrace = EditorUtil.getMatchingBraceLine(true);
-
-				// open brace not found
-				if (startBrace == -1) {
-					editor.stopCompoundEdit();
-					return false;
-				}
-
-				int indent = EditorUtil.getLineIndentation(startBrace);
-
-				editor.setSelection(editor.getLineStartOffset(line), editor.getCaretOffset());
-				editor.setSelectedText(EditorUtil.addSpaces(indent));
-
-				editor.stopCompoundEdit();
-				return true;
 			}
+			editor.setSelectedText(EditorUtil.addSpaces(indent) + CLOSE_BRACE);
+			editor.stopCompoundEdit();
+			return true;
 		}
 		return false;
+	}
+	
+
+	@Override // from the KeyHandler interface
+	public boolean handleTyped(KeyEvent e) {
+		return (e.getKeyChar() == CLOSE_BRACE);
 	}
 
 	/*
@@ -151,9 +153,9 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 			}
 		}
 
-		if (lineText.matches(BLOCK_OPENING)) {			
-			if (Preferences.getBoolean("code_assistant.bracket_closing.auto_close")) {		
-				
+		if (lineText.matches(BLOCK_OPENING)) {
+			if (Preferences.getBoolean("code_assistant.bracket_closing.auto_close")) {
+
 				boolean bracketsAreBalanced = EditorUtil.checkBracketsBalance(editor.getText(), "{", "}");
 				boolean hasClosingBrace = lineText.matches(BLOCK_CLOSING);
 				int openBrace = lineText.indexOf(OPEN_BRACE);
