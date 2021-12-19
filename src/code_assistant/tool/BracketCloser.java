@@ -8,20 +8,11 @@ import processing.app.Preferences;
 import processing.app.ui.Editor;
 
 public class BracketCloser implements KeyHandler {
-	private Editor editor;
-
-	// needed to remove double brackets (when typing too fast)
-	static char lastChar;
-
-	// define which characters should get closed
-	static char[] openingChar = { '(', '[', '{', '"', '\'', '<' };
-	static char[] closingChar = { ')', ']', '}', '"', '\'', '>' };
-
-	// TODO: talvez deveria torna-los <String, String> de forma conseguir utilizar
-	// padroes mais avancados como /* e */ ???
-	static private final Map<Character, Character> tokens = new HashMap<Character, Character>();
-
+	private static final Map<Character, Character> tokens = new HashMap<Character, Character>();
+	private char previousToken;
 	private boolean enabled;
+
+	protected Editor editor;
 
 	static {
 		tokens.put('(', ')');
@@ -43,6 +34,18 @@ public class BracketCloser implements KeyHandler {
 	@Override
 	public boolean handlePressed(KeyEvent e) {
 		char keyChar = e.getKeyChar();
+				
+		if (keyChar == previousToken) {
+			int newCaret = editor.getCaretOffset() + 1;
+
+			editor.setSelection(newCaret, newCaret);
+			previousToken = Character.UNASSIGNED;
+			return true;
+			
+		} else if (keyChar == ')' || keyChar == ']' || keyChar == '}' || keyChar == '>') {
+			
+			editor.insertText(String.valueOf(keyChar));
+		}
 
 		if (!isEnabled() || !tokens.containsKey(keyChar)) {
 			return false;
@@ -62,7 +65,19 @@ public class BracketCloser implements KeyHandler {
 	@Override // from the KeyHandler interface
 	public boolean handleTyped(KeyEvent e) {
 		char keyChar = e.getKeyChar();
-		return (isEnabled() && tokens.containsKey(keyChar) && tokens.containsValue(keyChar));
+		return (isEnabled() && (tokens.containsKey(keyChar) || keyChar == ')' || keyChar == ']' || keyChar == '}' || keyChar == '>'));
+	}
+	
+	private void addClosingToken(char token) { 
+		StringBuilder result = new StringBuilder();
+		result.append(token).append(tokens.get(token));
+		
+		editor.insertText(result.toString());
+
+		int newCaret = editor.getCaretOffset() - 1;
+		editor.setSelection(newCaret, newCaret);
+		
+		previousToken = tokens.get(token);
 	}
 
 	private void wrapSelection(char token) {
@@ -102,76 +117,6 @@ public class BracketCloser implements KeyHandler {
 		editor.setSelectedText(selectedText.toString());
 		editor.setSelection(start, end);
 		editor.stopCompoundEdit();
-	}
-	
-	private void addClosingToken(char token) { 
-		int line = editor.getTextArea().getCaretLine();
-		String lineText = editor.getLineText(line);
-		
-		int caretPos = editor.getCaretOffset() - editor.getLineStartOffset(line);
-		
-		char prevChar = lineText.charAt(caretPos-1);
-		char nextChar = lineText.charAt(caretPos);
-		
-		println("prevChar: " + prevChar + " - nextChar: " + nextChar);
-		
-		StringBuilder result = new StringBuilder();
-		result.append(token).append(tokens.get(token));
-		
-		editor.insertText(result.toString());
-
-		int newCaret = editor.getCaretOffset() - 1;
-		editor.setSelection(newCaret, newCaret);
-	}
-
-
-//	@Override
-//	public boolean handlePressed(KeyEvent e) {
-//		int keyChar = e.getKeyChar();
-//		
-//		// loop through array of opening brackets to trigger completion
-//		for (int i = 0; i < openingChar.length; i++) {
-//			// if nothing is selected just add closing bracket, else wrap brackets around
-//			// selection
-//			if (!editor.isSelectionActive()) {
-//				if (keyChar == openingChar[i])
-//					addClosingChar(i);
-//				else if (keyChar == closingChar[i] && lastChar == openingChar[i])
-//					removeClosingChar(i);
-//			} else if (keyChar == openingChar[i] && editor.isSelectionActive())
-//				addClosingChar(i, editor.getSelectionStart(), editor.getSelectionStop());
-//		}
-//		return false;
-//	}
-
-	// add closing bracket and set caret inside brackets
-	private void addClosingChar(int positionOfChar) {
-		editor.insertText(Character.toString(closingChar[positionOfChar]));
-
-		int cursorPos = editor.getCaretOffset();
-		editor.setSelection(cursorPos - 1, cursorPos - 1);
-		lastChar = openingChar[positionOfChar];
-	}
-
-	// prevents something like ()) when typing too fast
-	// TODO: corrigir bug quando este metodo e chamado para apagar um 'closing char'
-	// e acaba movendo o scroll do editor.
-
-	private void removeClosingChar(int positionOfChar) {
-		// return if character is ' or "
-		if (closingChar[positionOfChar] == '\'' || closingChar[positionOfChar] == '"')
-			return;
-
-		String sketchContent = editor.getText();
-		int cursorPos = editor.getCaretOffset();
-
-		String newContent1 = sketchContent.substring(0, cursorPos);
-		String newContent2 = sketchContent.substring(cursorPos + 1, sketchContent.length());
-
-		editor.setText(newContent1 + newContent2);
-		editor.setSelection(cursorPos, cursorPos);
-
-		lastChar = closingChar[positionOfChar];
 	}
 
 	protected boolean isEnabled() {

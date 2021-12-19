@@ -63,9 +63,7 @@ public class InputManager extends PdeInputHandler {
 		for (KeyHandler handler : keyHandlers) {
 			if (handler.handlePressed(e)) {
 				handleInputMethodCommit();
-				e.consume();
-				
-				System.out.println("keyPressed: " + e.getKeyChar());
+				e.consume();				
 				return true;
 			}
 		}
@@ -87,13 +85,10 @@ public class InputManager extends PdeInputHandler {
 		
 		for (KeyHandler handler : keyHandlers) {
 			if (handler.handleTyped(e)) {
-				e.consume();
-				
-				System.out.println("keyTyped: " + e.getKeyChar() + " CANCELLED");
+				e.consume();				
 				return true;
 			}
 		}
-		System.out.println("keyTyped: " + keyChar);
 		return false;
 	}
 }

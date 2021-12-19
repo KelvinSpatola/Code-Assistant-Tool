@@ -72,9 +72,8 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
 					editor.setSelection(editor.getLineStartOffset(line), editor.getCaretOffset());				
 				}
 			}
-			editor.setSelectedText(EditorUtil.addSpaces(indent) + CLOSE_BRACE);
+			editor.setSelectedText(EditorUtil.addSpaces(indent));
 			editor.stopCompoundEdit();
-			return true;
 		}
 		return false;
 	}
