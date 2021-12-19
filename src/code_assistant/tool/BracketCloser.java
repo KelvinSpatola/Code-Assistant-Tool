@@ -1,6 +1,8 @@
 package code_assistant.tool;
 
 import java.awt.event.KeyEvent;
+import java.util.Map;
+import java.util.HashMap;
 
 import processing.app.ui.Editor;
 
@@ -13,15 +15,27 @@ public class BracketCloser implements KeyPressedListener {
 	// define which characters should get closed
 	static char[] openingChar = { '(', '[', '{', '"', '\'', '<' };
 	static char[] closingChar = { ')', ']', '}', '"', '\'', '>' };
+	
+	//TODO: talvez deveria torna-los <String, String> de forma conseguir utilizar padroes mais avancados como /* e */ ???
+	static private final Map<Character, Character> tokens = new HashMap<Character, Character>();
+	
+	static {
+		tokens.put('(', ')');
+		tokens.put('[', ']');
+		tokens.put('{', '}');
+		tokens.put('<', '>');
+		tokens.put('"', '"');
+		tokens.put('\'', '\'');
+	}
 
-	public BracketCloser(Editor _editor) {
-		editor = _editor;
+	public BracketCloser(Editor editor) {
+		this.editor = editor;
 	}
 
 	@Override
 	public boolean handlePressed(KeyEvent e) {
 		int keyChar = e.getKeyChar();
-
+		
 		// loop through array of opening brackets to trigger completion
 		for (int i = 0; i < openingChar.length; i++) {
 			// if nothing is selected just add closing bracket, else wrap brackets around
@@ -74,5 +88,11 @@ public class BracketCloser implements KeyPressedListener {
 		editor.setSelection(cursorPos, cursorPos);
 
 		lastChar = closingChar[positionOfChar];
+	}
+	
+	private void print(Object ... what) {
+		for(Object s : what) {
+			System.out.println(s.toString());
+		}
 	}
 }

@@ -125,7 +125,7 @@ public final class EditorUtil {
 	}
 
 	static public int getMatchingBraceLine(int lineIndex, boolean goUp) {
-		if (lineIndex < 0) {
+		if (lineIndex < 0 || lineIndex >= editor.getLineCount()) {
 			return -1;
 		}
 

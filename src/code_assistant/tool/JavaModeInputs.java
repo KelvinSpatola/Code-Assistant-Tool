@@ -151,17 +151,20 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 			}
 		}
 
-		if (lineText.matches(BLOCK_OPENING)) {
-			boolean bracketsAreBalanced = EditorUtil.checkBracketsBalance(editor.getText(), "{", "}");
-			boolean hasClosingBrace = lineText.matches(BLOCK_CLOSING);
-			int openBrace = lineText.indexOf(OPEN_BRACE);
-			int closeBrace = lineText.indexOf(CLOSE_BRACE);
+		if (lineText.matches(BLOCK_OPENING)) {			
+			if (Preferences.getBoolean("code_assistant.bracket_closing.auto_close")) {		
+				
+				boolean bracketsAreBalanced = EditorUtil.checkBracketsBalance(editor.getText(), "{", "}");
+				boolean hasClosingBrace = lineText.matches(BLOCK_CLOSING);
+				int openBrace = lineText.indexOf(OPEN_BRACE);
+				int closeBrace = lineText.indexOf(CLOSE_BRACE);
 
-			if ((!bracketsAreBalanced && positionInLine > openBrace) || (bracketsAreBalanced && hasClosingBrace
-					&& positionInLine > openBrace && positionInLine <= closeBrace)) {
+				if ((!bracketsAreBalanced && positionInLine > openBrace) || (bracketsAreBalanced && hasClosingBrace
+						&& positionInLine > openBrace && positionInLine <= closeBrace)) {
 
-				createBlockScope(caret);
-				return;
+					createBlockScope(caret);
+					return;
+				}
 			}
 		}
 		// if none of the above, then insert a new line
@@ -239,7 +242,7 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 		if (Preferences.getBoolean("editor.indent")) {
 			int line = editor.getTextArea().getLineOfOffset(offset);
 			String lineText = editor.getLineText(line);
-			
+
 			int startBrace = EditorUtil.getMatchingBraceLine(line, true);
 
 			if (startBrace != -1) {
@@ -247,9 +250,9 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 
 				if (!lineText.matches(BLOCK_CLOSING))
 					indent += TAB_SIZE;
-				
+
 				int positionInLine = EditorUtil.getPositionInsideLineWithOffset(offset);
-				
+
 				if (lineText.matches(BLOCK_OPENING) && positionInLine <= lineText.indexOf(OPEN_BRACE))
 					indent -= TAB_SIZE;
 			}
@@ -290,7 +293,6 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 			} else if (start == s.getStart() && end == s.getEnd()) {
 				startLine--;
 				endLine++;
-
 			}
 		}
 
@@ -384,7 +386,6 @@ public class JavaModeInputs implements ActionTrigger, KeyPressedListener {
 			}
 		}
 	}
-	
 
 	private String refactorStringLiterals(String text) {
 		int maxLength = Preferences.getInteger("code_assistant.autoformat.line_length");

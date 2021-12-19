@@ -41,7 +41,7 @@ import processing.app.tools.Tool;
 import processing.app.ui.Editor;
 
 public class CodeAssistant implements Tool, ActionTrigger {
-	private final String TOOL_NAME = "Code Assistant";
+	static public final String TOOL_NAME = "Code Assistant";
 	private Base base;
 	private boolean isRunning = false;
 
