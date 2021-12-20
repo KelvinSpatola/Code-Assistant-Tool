@@ -13,11 +13,11 @@ import processing.app.Platform;
 import processing.app.syntax.PdeInputHandler;
 import processing.app.ui.Editor;
 
-public class CodeAssistantInputHandler extends PdeInputHandler {
-	protected List<KeyPressedListener> keyListeners = new ArrayList<>();
+public class InputManager extends PdeInputHandler {
+	protected List<KeyHandler> keyHandlers = new ArrayList<>();
 
 	// CONSTRUCTOR
-	public CodeAssistantInputHandler(Editor editor, ActionTrigger... triggers) {
+	public InputManager(Editor editor, ActionTrigger... triggers) {
 		super(editor);
 
 		for(ActionTrigger trigger : triggers) {
@@ -39,9 +39,9 @@ public class CodeAssistantInputHandler extends PdeInputHandler {
 		}
 	}
 	
-	public void addKeyPressedListeners(KeyPressedListener... listeners) {
-		for (KeyPressedListener listener : listeners) {
-			keyListeners.add(listener);
+	public void addKeyPressedListeners(KeyHandler... handlers) {
+		for (KeyHandler handler : handlers) {
+			keyHandlers.add(handler);
 		}
 	}
 
@@ -60,10 +60,10 @@ public class CodeAssistantInputHandler extends PdeInputHandler {
 		if (e.isMetaDown())
 			return false;
 
-		for (KeyPressedListener listener : keyListeners) {
-			if (listener.handlePressed(e)) {
+		for (KeyHandler handler : keyHandlers) {
+			if (handler.handlePressed(e)) {
 				handleInputMethodCommit();
-				e.consume();
+				e.consume();				
 				return true;
 			}
 		}
@@ -74,10 +74,18 @@ public class CodeAssistantInputHandler extends PdeInputHandler {
 	public boolean handleTyped(KeyEvent e) {
 		char keyChar = e.getKeyChar();
 
+//		return true;
 		if (e.isControlDown()) {
 			// on linux, ctrl-comma (prefs) being passed through to the editor
 			if ((keyChar == KeyEvent.VK_COMMA) || (keyChar == KeyEvent.VK_SPACE)) {
 				e.consume();
+				return true;
+			}
+		}
+		
+		for (KeyHandler handler : keyHandlers) {
+			if (handler.handleTyped(e)) {
+				e.consume();				
 				return true;
 			}
 		}
