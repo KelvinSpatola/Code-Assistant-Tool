@@ -9,7 +9,8 @@ import processing.app.ui.Editor;
 
 public class BracketCloser implements KeyHandler {
 	private static final Map<Character, Character> tokens = new HashMap<Character, Character>();
-	private char previousToken;
+	private final String CLOSING_BRACKETS = ")]}>";
+	private char nextToken;
 	private boolean enabled;
 
 	protected Editor editor;
@@ -28,62 +29,80 @@ public class BracketCloser implements KeyHandler {
 	// CONSTRUCTOR
 	public BracketCloser(Editor editor) {
 		this.editor = editor;
-		enabled = Preferences.getBoolean("code_assistant.bracket_closing.auto_close");
+		enabled = Preferences.getBoolean("code_assistant.bracket_closing.enabled");
 	}
 
 	@Override
 	public boolean handlePressed(KeyEvent e) {
 		char keyChar = e.getKeyChar();
-				
-		if (keyChar == previousToken) {
-			int newCaret = editor.getCaretOffset() + 1;
 
-			editor.setSelection(newCaret, newCaret);
-			previousToken = Character.UNASSIGNED;
-			return true;
-			
-		} else if (keyChar == ')' || keyChar == ']' || keyChar == '}' || keyChar == '>') {
-			
-			editor.insertText(String.valueOf(keyChar));
-		}
-
-		if (!isEnabled() || !tokens.containsKey(keyChar)) {
+		if (!tokens.containsKey(keyChar) && !tokens.containsValue(keyChar)) {
+			// this keyChar is not our business, so let's get the hell outta here
 			return false;
 		}
 
-		// if selection is active we must wrap a pair of tokens around the selection
-		if (editor.isSelectionActive()) {
-			wrapSelection(keyChar);
-			
-		} else {
-			addClosingToken(keyChar);
+		// closing - enabled
+		if (keyChar == nextToken) {
+			skipNextToken(keyChar);
+			return false;
 		}
 
-		return true;
+		// closing - enabled or disabled
+		if (isClosingBracket(keyChar)) {
+			editor.insertText(String.valueOf(keyChar));
+		}
+
+		// opening - enabled
+		if (isEnabled() && tokens.containsKey(keyChar)) {
+			// if selection is active we must wrap a pair of tokens around the selection
+			if (editor.isSelectionActive())
+				wrapSelection(keyChar);
+
+			else // otherwise, add a closing token
+				addClosingToken(keyChar);
+		}
+
+		return false;
 	}
 
 	@Override // from the KeyHandler interface
 	public boolean handleTyped(KeyEvent e) {
 		char keyChar = e.getKeyChar();
-		return (isEnabled() && (tokens.containsKey(keyChar) || keyChar == ')' || keyChar == ']' || keyChar == '}' || keyChar == '>'));
+		return (isClosingBracket(keyChar) || (isEnabled() && tokens.containsKey(keyChar)));
 	}
-	
-	private void addClosingToken(char token) { 
+
+	private void addClosingToken(char token) {
+		nextToken = tokens.get(token);
+
 		StringBuilder result = new StringBuilder();
-		result.append(token).append(tokens.get(token));
-		
+		result.append(token).append(nextToken);
+
 		editor.insertText(result.toString());
 
+		// step back one char so that it is in the middle of the tokens
 		int newCaret = editor.getCaretOffset() - 1;
 		editor.setSelection(newCaret, newCaret);
-		
-		previousToken = tokens.get(token);
+	}
+
+	private void skipNextToken(char token) {
+		int caret = editor.getCaretOffset();
+
+		if (editor.getText().charAt(caret) == nextToken) {
+			editor.setSelection(caret + 1, caret + 1);
+			nextToken = Character.UNASSIGNED;
+
+		} else if (isClosingBracket(token)) { 
+			editor.insertText(String.valueOf(token));
+			
+		} else { // if it's either \' \" or *
+			addClosingToken(token);
+		}
 	}
 
 	private void wrapSelection(char token) {
 		StringBuilder selectedText = new StringBuilder(editor.getSelectedText());
 
-		if (Preferences.getBoolean("code_assistant.bracket_closing.expand")) {
+		if (Preferences.getBoolean("code_assistant.bracket_closing.replace_token")) {
 			selectedText.insert(0, token).append(tokens.get(token)).toString();
 
 		} else {
@@ -121,6 +140,10 @@ public class BracketCloser implements KeyHandler {
 
 	protected boolean isEnabled() {
 		return enabled;
+	}
+
+	protected boolean isClosingBracket(char ch) {
+		return CLOSING_BRACKETS.contains(String.valueOf(ch));
 	}
 
 	private void println(Object... what) {

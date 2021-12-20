@@ -20,16 +20,16 @@ public class InputManager extends PdeInputHandler {
 	public InputManager(Editor editor, ActionTrigger... triggers) {
 		super(editor);
 
-		for(ActionTrigger trigger : triggers) {
+		for (ActionTrigger trigger : triggers) {
 			for (Map.Entry<String, Action> entry : trigger.getActions().entrySet()) {
-				
+
 				String keyBinding = entry.getKey();
 				Action action = entry.getValue();
 				String name = (String) action.getValue(Action.NAME);
-								
+
 				if (name == null) {
 					addKeyBinding(keyBinding, action);
-					
+
 				} else {
 					KeyStroke ks = parseKeyStroke(keyBinding);
 					editor.getTextArea().getInputMap().put(ks, name);
@@ -38,8 +38,8 @@ public class InputManager extends PdeInputHandler {
 			}
 		}
 	}
-	
-	public void addKeyPressedListeners(KeyHandler... handlers) {
+
+	public void addKeyHandler(KeyHandler... handlers) {
 		for (KeyHandler handler : handlers) {
 			keyHandlers.add(handler);
 		}
@@ -63,7 +63,7 @@ public class InputManager extends PdeInputHandler {
 		for (KeyHandler handler : keyHandlers) {
 			if (handler.handlePressed(e)) {
 				handleInputMethodCommit();
-				e.consume();				
+				e.consume();
 				return true;
 			}
 		}
@@ -74,7 +74,6 @@ public class InputManager extends PdeInputHandler {
 	public boolean handleTyped(KeyEvent e) {
 		char keyChar = e.getKeyChar();
 
-//		return true;
 		if (e.isControlDown()) {
 			// on linux, ctrl-comma (prefs) being passed through to the editor
 			if ((keyChar == KeyEvent.VK_COMMA) || (keyChar == KeyEvent.VK_SPACE)) {
@@ -82,10 +81,10 @@ public class InputManager extends PdeInputHandler {
 				return true;
 			}
 		}
-		
+
 		for (KeyHandler handler : keyHandlers) {
 			if (handler.handleTyped(e)) {
-				e.consume();				
+				e.consume();
 				return true;
 			}
 		}

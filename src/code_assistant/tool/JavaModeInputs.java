@@ -43,9 +43,9 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
 	public Map<String, Action> getActions() {
 		return actions;
 	}
-	
+
 	/*
-	 * ******** KEY HANDLER  ********
+	 * ******** KEY HANDLER ********
 	 */
 
 	@Override // from the KeyHandler interface
@@ -59,17 +59,17 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
 			}
 
 			int indent = 0;
-			
+
 			if (Preferences.getBoolean("editor.indent")) {
 				int line = editor.getTextArea().getCaretLine();
 
 				if (editor.getLineText(line).isBlank()) {
 					int startBrace = EditorUtil.getMatchingBraceLine(line, true);
-					
+
 					if (startBrace != -1)
 						indent = EditorUtil.getLineIndentation(startBrace);
-					
-					editor.setSelection(editor.getLineStartOffset(line), editor.getCaretOffset());				
+
+					editor.setSelection(editor.getLineStartOffset(line), editor.getCaretOffset());
 				}
 			}
 			editor.setSelectedText(EditorUtil.addSpaces(indent));
@@ -77,7 +77,6 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
 		}
 		return false;
 	}
-	
 
 	@Override // from the KeyHandler interface
 	public boolean handleTyped(KeyEvent e) {
@@ -115,56 +114,60 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
 
 	private void handleEnter() {
 		int caret = editor.getCaretOffset();
-		int positionInLine = EditorUtil.getPositionInsideLineWithOffset(caret);
-		int caretLine = editor.getTextArea().getCaretLine();
-		String lineText = editor.getLineText(caretLine);
 
-		if (lineText.matches(STRING_TEXT)) {
-			int stringStart = lineText.indexOf("\"");
-			int stringStop = lineText.lastIndexOf("\"") + 1;
+		if (!editor.isSelectionActive()) {
 
-			if (positionInLine > stringStart && positionInLine < stringStop) {
-				splitString(caretLine);
-				return;
-			}
-		}
+			int positionInLine = EditorUtil.getPositionInsideLineWithOffset(caret);
+			int caretLine = editor.getTextArea().getCaretLine();
+			String lineText = editor.getLineText(caretLine);
 
-		if (lineText.matches(COMMENT_TEXT)) {
-			if (!lineText.contains("/*")) {
-				int line = caretLine - 1;
+			if (lineText.matches(STRING_TEXT)) {
+				int stringStart = lineText.indexOf("\"");
+				int stringStop = lineText.lastIndexOf("\"") + 1;
 
-				while (line >= 0) {
-					if (!editor.getLineText(line).matches(COMMENT_TEXT))
-						break;
-					line--;
-				}
-				if (!editor.getLineText(line + 1).contains("/*")) {
-					insertNewLine(caret);
+				if (positionInLine > stringStart && positionInLine < stringStop) {
+					splitString(caretLine);
 					return;
 				}
 			}
-			int commentStart = lineText.indexOf("/*");
-			int commentStop = (lineText.contains("*/") ? lineText.indexOf("*/") : lineText.length()) + 2;
 
-			if (positionInLine > commentStart && positionInLine < commentStop) {
-				splitComment(caretLine);
-				return;
-			}
-		}
+			if (lineText.matches(COMMENT_TEXT)) {
+				if (!lineText.contains("/*")) {
+					int line = caretLine - 1;
 
-		if (lineText.matches(BLOCK_OPENING)) {
-			if (Preferences.getBoolean("code_assistant.bracket_closing.auto_close")) {
+					while (line >= 0) {
+						if (!editor.getLineText(line).matches(COMMENT_TEXT))
+							break;
+						line--;
+					}
+					if (!editor.getLineText(line + 1).contains("/*")) {
+						insertNewLine(caret);
+						return;
+					}
+				}
+				int commentStart = lineText.indexOf("/*");
+				int commentStop = (lineText.contains("*/") ? lineText.indexOf("*/") : lineText.length()) + 2;
 
-				boolean bracketsAreBalanced = EditorUtil.checkBracketsBalance(editor.getText(), "{", "}");
-				boolean hasClosingBrace = lineText.matches(BLOCK_CLOSING);
-				int openBrace = lineText.indexOf(OPEN_BRACE);
-				int closeBrace = lineText.indexOf(CLOSE_BRACE);
-
-				if ((!bracketsAreBalanced && positionInLine > openBrace) || (bracketsAreBalanced && hasClosingBrace
-						&& positionInLine > openBrace && positionInLine <= closeBrace)) {
-
-					createBlockScope(caret);
+				if (positionInLine > commentStart && positionInLine < commentStop) {
+					splitComment(caretLine);
 					return;
+				}
+			}
+
+			if (lineText.matches(BLOCK_OPENING)) {
+				if (Preferences.getBoolean("code_assistant.bracket_closing.auto_close")) {
+
+					boolean bracketsAreBalanced = EditorUtil.checkBracketsBalance(editor.getText(), "{", "}");
+					boolean hasClosingBrace = lineText.matches(BLOCK_CLOSING);
+					int openBrace = lineText.indexOf(OPEN_BRACE);
+					int closeBrace = lineText.indexOf(CLOSE_BRACE);
+
+					if ((!bracketsAreBalanced && positionInLine > openBrace) || (bracketsAreBalanced && hasClosingBrace
+							&& positionInLine > openBrace && positionInLine <= closeBrace)) {
+
+						createBlockScope(caret);
+						return;
+					}
 				}
 			}
 		}
@@ -240,31 +243,44 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
 		int indent = 0;
 		editor.startCompoundEdit();
 
-		if (Preferences.getBoolean("editor.indent")) {
-			int line = editor.getTextArea().getLineOfOffset(offset);
-			String lineText = editor.getLineText(line);
+		// erase any selection content
+		if (editor.isSelectionActive()) {
+			offset = editor.getSelectionStart() + 1;
+			editor.setSelectedText("");			
+			editor.setSelectedText(NL);
 
-			int startBrace = EditorUtil.getMatchingBraceLine(line, true);
+			editor.setSelection(offset, offset);
+			editor.stopCompoundEdit();
+			return;
 
-			if (startBrace != -1) {
-				indent = EditorUtil.getLineIndentation(startBrace);
+		} else {
 
-				if (!lineText.matches(BLOCK_CLOSING))
-					indent += TAB_SIZE;
+			if (Preferences.getBoolean("editor.indent")) {
+				int line = editor.getTextArea().getLineOfOffset(offset);
+				String lineText = editor.getLineText(line);
 
-				int positionInLine = EditorUtil.getPositionInsideLineWithOffset(offset);
+				int startBrace = EditorUtil.getMatchingBraceLine(line, true);
 
-				if (lineText.matches(BLOCK_OPENING) && positionInLine <= lineText.indexOf(OPEN_BRACE))
-					indent -= TAB_SIZE;
+				if (startBrace != -1) {
+					indent = EditorUtil.getLineIndentation(startBrace);
+
+					if (!lineText.matches(BLOCK_CLOSING))
+						indent += TAB_SIZE;
+
+					int positionInLine = EditorUtil.getPositionInsideLineWithOffset(offset);
+
+					if (lineText.matches(BLOCK_OPENING) && positionInLine <= lineText.indexOf(OPEN_BRACE))
+						indent -= TAB_SIZE;
+				}
+				editor.setSelection(offset, editor.getLineStopOffset(line) - 1);
 			}
-			editor.setSelection(offset, editor.getLineStopOffset(line) - 1);
+			String cutText = editor.isSelectionActive() ? editor.getSelectedText().trim() : "";
+			editor.setSelectedText(NL + EditorUtil.addSpaces(indent) + cutText);
+			
+			int newOffset = offset + indent + 1;
+			editor.setSelection(newOffset, newOffset);
+			editor.stopCompoundEdit();
 		}
-		String cutText = editor.isSelectionActive() ? editor.getSelectedText().trim() : "";
-		editor.setSelectedText(NL + EditorUtil.addSpaces(indent) + cutText);
-
-		int newOffset = offset + indent + 1;
-		editor.setSelection(newOffset, newOffset);
-		editor.stopCompoundEdit();
 	}
 
 	private void expandSelection() {

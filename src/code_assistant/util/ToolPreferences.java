@@ -15,8 +15,8 @@ public final class ToolPreferences {
 		set("autoformat.comments", "true");
 		set("autoformat.line_length", "80");
 		set("move_lines.auto_indent", "true");
-		set("bracket_closing.auto_close", "true");
-		set("bracket_closing.expand", "false");
+		set("bracket_closing.enabled", "true");
+		set("bracket_closing.replace_token", "true");
 	}
 
 	static public void set(String attribute, String value) {		
