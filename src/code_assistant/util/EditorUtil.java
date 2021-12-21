@@ -44,7 +44,7 @@ public final class EditorUtil {
 		StringBuffer sb = new StringBuffer();
 
 		for (String line : lines) {
-			sb.append(addSpaces(indent).concat(line).concat(NL));
+			sb.append(addSpaces(indent)).append(line).append(NL);
 		}
 		return sb.toString();
 	}
@@ -56,7 +56,7 @@ public final class EditorUtil {
 		for (int i = 0; i < lines.length; i++) {
 			String str = lines[i].substring(TAB_SIZE);
 			if (i < lines.length - 1)
-				sb.append(str.concat(NL));
+				sb.append(str).append(NL);
 			else
 				sb.append(str);
 		}

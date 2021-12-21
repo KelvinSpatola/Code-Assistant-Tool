@@ -23,7 +23,6 @@ public class BracketCloser implements KeyHandler {
 
 		tokens.put('"', '"');
 		tokens.put('\'', '\'');
-		tokens.put('*', '*');
 	}
 
 	// CONSTRUCTOR
@@ -144,11 +143,5 @@ public class BracketCloser implements KeyHandler {
 
 	protected boolean isClosingBracket(char ch) {
 		return CLOSING_BRACKETS.contains(String.valueOf(ch));
-	}
-
-	private void println(Object... what) {
-		for (Object s : what) {
-			System.out.println(s.toString());
-		}
 	}
 }

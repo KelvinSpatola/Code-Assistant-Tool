@@ -37,6 +37,7 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
 		actions.put("ENTER", HANDLE_ENTER);
 		actions.put("CA+RIGHT", EXPAND_SELECTION);
 		actions.put("C+T", FORMAT_SELECTED_TEXT);
+		actions.put("CS+A", TOGGLE_BLOCK_COMMENT);
 	}
 
 	@Override // from the ActionTrigger interface
@@ -75,6 +76,7 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
 			editor.setSelectedText(EditorUtil.addSpaces(indent));
 			editor.stopCompoundEdit();
 		}
+
 		return false;
 	}
 
@@ -105,6 +107,13 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			handleEnter();
+		}
+	};
+
+	private final Action TOGGLE_BLOCK_COMMENT = new AbstractAction() {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			toggleBlockComment();
 		}
 	};
 
@@ -246,7 +255,7 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
 		// erase any selection content
 		if (editor.isSelectionActive()) {
 			offset = editor.getSelectionStart() + 1;
-			editor.setSelectedText("");			
+			editor.setSelectedText("");
 			editor.setSelectedText(NL);
 
 			editor.setSelection(offset, offset);
@@ -276,7 +285,7 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
 			}
 			String cutText = editor.isSelectionActive() ? editor.getSelectedText().trim() : "";
 			editor.setSelectedText(NL + EditorUtil.addSpaces(indent) + cutText);
-			
+
 			int newOffset = offset + indent + 1;
 			editor.setSelection(newOffset, newOffset);
 			editor.stopCompoundEdit();
@@ -444,4 +453,56 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
 
 		return result.toString();
 	}
+
+	private void toggleBlockComment() {
+		if (editor.isSelectionActive()) {
+			boolean isCommentText = true;
+
+			Selection s = new Selection(editor);
+			String[] lines = s.getText().split(NL);
+
+			editor.startCompoundEdit();
+			editor.setSelection(s.getStart(), s.getEnd());
+
+			for (String line : lines) {
+				if (!line.matches(COMMENT_TEXT)) {
+					isCommentText = false;
+					break;
+				}
+			}
+
+			StringBuilder sb = new StringBuilder();
+
+			if (isCommentText) {
+				for (int i = 1; i < lines.length - 1; i++) {
+					if (i < lines.length - 2)
+						sb.append(lines[i].substring(3)).append(NL);
+					else
+						sb.append(lines[i].substring(3));
+				}
+			} else {
+
+				sb.append("/*\n");
+				for (int i = 0; i < lines.length; i++) {
+					sb.append(" * ").append(lines[i].trim()).append(NL);
+				}
+				sb.append(" */");
+			}
+
+			int selectionStart = s.getStart();
+			int selectionEnd = selectionStart + sb.length();
+
+			editor.setSelectedText(sb.toString());
+			editor.setSelection(selectionStart, selectionEnd);
+			editor.stopCompoundEdit();
+
+		}
+	}
+
+	private void println(Object... what) {
+		for (Object s : what) {
+			System.out.println(s.toString());
+		}
+	}
+
 }
