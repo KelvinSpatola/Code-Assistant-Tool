@@ -24,6 +24,8 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
 	protected static final String COMMENT_TEXT = "^(?!.*\\\".*\\/\\*.*\\\")(?:.*\\/\\*.*|\\h*\\*.*)";
 	protected static final String STRING_TEXT = "^(?!(.*?(\\*|\\/+).*?\\\".*\\\")).*(?:\\\".*){2}";
 	protected static final String SPLIT_STRING_TEXT = "^\\h*\\+\\s*(?:\\\".*){2}";
+	protected static final String OPEN_COMMENT = "/*";
+	protected static final String CLOSE_COMMENT = "*/";
 	protected static final char OPEN_BRACE = '{';
 	protected static final char CLOSE_BRACE = '}';
 
@@ -141,7 +143,7 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
 			}
 
 			if (lineText.matches(COMMENT_TEXT)) {
-				if (!lineText.contains("/*")) {
+				if (!lineText.contains(OPEN_COMMENT)) {
 					int line = caretLine - 1;
 
 					while (line >= 0) {
@@ -149,13 +151,13 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
 							break;
 						line--;
 					}
-					if (!editor.getLineText(line + 1).contains("/*")) {
+					if (!editor.getLineText(line + 1).contains(OPEN_COMMENT)) {
 						insertNewLine(caret);
 						return;
 					}
 				}
-				int commentStart = lineText.indexOf("/*");
-				int commentStop = (lineText.contains("*/") ? lineText.indexOf("*/") : lineText.length()) + 2;
+				int commentStart = lineText.indexOf(OPEN_COMMENT);
+				int commentStop = (lineText.contains(CLOSE_COMMENT) ? lineText.indexOf(CLOSE_COMMENT) : lineText.length()) + 2;
 
 				if (positionInLine > commentStart && positionInLine < commentStop) {
 					splitComment(caretLine);
@@ -211,8 +213,8 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
 		String nextText = editor.getText().substring(caretPos);
 
 		// Checking if we need to close this comment
-		int openingToken = nextText.indexOf("/*");
-		int closingToken = nextText.indexOf("*/");
+		int openingToken = nextText.indexOf(OPEN_COMMENT);
+		int closingToken = nextText.indexOf(CLOSE_COMMENT);
 		boolean commentIsOpen = (closingToken == -1) || (closingToken > openingToken && openingToken != -1);
 
 		if (commentIsOpen) {
@@ -456,46 +458,25 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
 
 	private void toggleBlockComment() {
 		if (editor.isSelectionActive()) {
-			boolean isCommentText = true;
+			String selectedText = editor.getSelectedText();
+			StringBuilder result = new StringBuilder();
+			
+			if (selectedText.startsWith(OPEN_COMMENT) && selectedText.endsWith(CLOSE_COMMENT)) {
+				result.append(selectedText);
+				result.delete(0, 3);		
+				result.delete(result.length() - 3, result.length());		
+				
+			} else {
+				result.append(OPEN_COMMENT).append(" " + selectedText + " ").append(CLOSE_COMMENT);
+			}
 
-			Selection s = new Selection(editor);
-			String[] lines = s.getText().split(NL);
+			int selectionStart = editor.getSelectionStart();
+			int selectionEnd = selectionStart + result.length();
 
 			editor.startCompoundEdit();
-			editor.setSelection(s.getStart(), s.getEnd());
-
-			for (String line : lines) {
-				if (!line.matches(COMMENT_TEXT)) {
-					isCommentText = false;
-					break;
-				}
-			}
-
-			StringBuilder sb = new StringBuilder();
-
-			if (isCommentText) {
-				for (int i = 1; i < lines.length - 1; i++) {
-					if (i < lines.length - 2)
-						sb.append(lines[i].substring(3)).append(NL);
-					else
-						sb.append(lines[i].substring(3));
-				}
-			} else {
-
-				sb.append("/*\n");
-				for (int i = 0; i < lines.length; i++) {
-					sb.append(" * ").append(lines[i].trim()).append(NL);
-				}
-				sb.append(" */");
-			}
-
-			int selectionStart = s.getStart();
-			int selectionEnd = selectionStart + sb.length();
-
-			editor.setSelectedText(sb.toString());
+			editor.setSelectedText(result.toString());
 			editor.setSelection(selectionStart, selectionEnd);
 			editor.stopCompoundEdit();
-
 		}
 	}
 
