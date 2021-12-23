@@ -359,14 +359,16 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
 			Selection s = new Selection(editor);
 
 			String selectedText;
+			boolean isSourceIntact = true;
 
 			// long string literals are formatted here
 			if (Preferences.getBoolean("code_assistant.autoformat.strings")) {
 				selectedText = refactorStringLiterals(s.getText());
+				isSourceIntact = selectedText.stripTrailing().equals(s.getText());
 			} else {
 				selectedText = s.getText();
 			}
-
+			
 			// and everything else is formatted here
 			String formattedText = editor.createFormatter().format(selectedText);
 
@@ -380,7 +382,7 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
 
 			formattedText = EditorUtil.indentText(formattedText, indent);
 
-			if (formattedText.equals(selectedText)) {
+			if (formattedText.equals(selectedText) && isSourceIntact) {
 				editor.statusNotice(Language.text("editor.status.autoformat.no_changes"));
 
 			} else {

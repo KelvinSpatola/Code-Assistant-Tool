@@ -63,6 +63,7 @@ public class CodeAssistant implements Tool, ActionTrigger {
 		final DefaultInputs defaultInputs = new DefaultInputs(editor);
 		final JavaModeInputs javaModeInputs = new JavaModeInputs(editor);
 		final BracketCloser bracketCloser = new BracketCloser(editor);
+		final CodeCompletion completion = new CodeCompletion(editor);
 	
 
 		InputManager inputHandler = new InputManager(editor,
@@ -70,7 +71,7 @@ public class CodeAssistant implements Tool, ActionTrigger {
 				javaModeInputs,
 				this);
 		
-		inputHandler.addKeyHandler(javaModeInputs, bracketCloser);
+		inputHandler.addKeyHandler(javaModeInputs, bracketCloser, completion);
 		editor.getTextArea().setInputHandler(inputHandler);
 
 		System.out.println(TOOL_NAME + " v. ##tool.prettyVersion## by Kelvin Spatola.");

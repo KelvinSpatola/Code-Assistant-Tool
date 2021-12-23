@@ -20,7 +20,6 @@ public class BracketCloser implements KeyHandler {
 		tokens.put('[', ']');
 		tokens.put('{', '}');
 		tokens.put('<', '>');
-
 		tokens.put('"', '"');
 		tokens.put('\'', '\'');
 	}
@@ -101,7 +100,7 @@ public class BracketCloser implements KeyHandler {
 	private void wrapSelection(char token) {
 		StringBuilder selectedText = new StringBuilder(editor.getSelectedText());
 
-		if (Preferences.getBoolean("code_assistant.bracket_closing.replace_token")) {
+		if (Preferences.getBoolean("code_assistant.bracket_closing.replace_token") == false) {
 			selectedText.insert(0, token).append(tokens.get(token)).toString();
 
 		} else {
