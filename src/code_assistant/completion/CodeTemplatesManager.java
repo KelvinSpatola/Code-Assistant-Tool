@@ -1,14 +1,16 @@
-package code_assistant.tool;
+package code_assistant.completion;
 
 import java.awt.event.KeyEvent;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
+import code_assistant.tool.KeyHandler;
 import processing.app.Preferences;
 import processing.app.ui.Editor;
 
-public class CodeCompletion implements KeyHandler {
+public class CodeTemplatesManager implements KeyHandler {
 	protected Editor editor;
 
 	static Map<String, Macros> snippets = new HashMap<>();
@@ -43,7 +45,7 @@ public class CodeCompletion implements KeyHandler {
 
 	}
 
-	public CodeCompletion(Editor editor) {
+	public CodeTemplatesManager(Editor editor) {
 		this.editor = editor;
 	}
 
@@ -52,21 +54,7 @@ public class CodeCompletion implements KeyHandler {
 		int key = e.getKeyCode();
 
 		if (e.isControlDown() && key == KeyEvent.VK_SPACE) {
-
-			if (Preferences.getBoolean("editor.caret.block") == false) {
-				Preferences.setBoolean("editor.caret.block", true);
-				
-				Method createTextArea;
-				try {
-					createTextArea = editor.getClass().getDeclaredMethod("createTextArea");
-					createTextArea.setAccessible(true);
-					editor = (Editor) createTextArea.invoke(editor);
-				} catch (Exception e1) {
-					e1.printStackTrace();
-				}
-			}
-			System.out.println(Preferences.getBoolean("editor.caret.block"));
-
+			
 			String trigger = checkTrigger();
 
 			if (snippets.containsKey(trigger)) {
@@ -79,6 +67,7 @@ public class CodeCompletion implements KeyHandler {
 				int caret = editor.getCaretOffset() - snippets.get(trigger).getCaretPos();
 				editor.setSelection(caret, caret);
 			}
+			
 		}
 		return false;
 	}

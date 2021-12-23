@@ -33,6 +33,7 @@ import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 
+import code_assistant.completion.CodeTemplatesManager;
 import code_assistant.util.Constants;
 import code_assistant.util.ToolPreferences;
 import processing.app.Base;
@@ -63,7 +64,7 @@ public class CodeAssistant implements Tool, ActionTrigger {
 		final DefaultInputs defaultInputs = new DefaultInputs(editor);
 		final JavaModeInputs javaModeInputs = new JavaModeInputs(editor);
 		final BracketCloser bracketCloser = new BracketCloser(editor);
-		final CodeCompletion completion = new CodeCompletion(editor);
+		final CodeTemplatesManager completion = new CodeTemplatesManager(editor);
 	
 
 		InputManager inputHandler = new InputManager(editor,
