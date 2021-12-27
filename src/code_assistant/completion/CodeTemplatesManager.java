@@ -1,73 +1,101 @@
 package code_assistant.completion;
 
+import static code_assistant.util.Constants.DATA_FOLDER;
+import static code_assistant.util.Constants.NL;
+import static code_assistant.util.Constants.TAB_SIZE;
+
 import java.awt.event.KeyEvent;
-import java.lang.reflect.Method;
+import java.io.File;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import code_assistant.tool.KeyHandler;
-import processing.app.Preferences;
+import code_assistant.util.EditorUtil;
+import code_assistant.util.Selection;
 import processing.app.ui.Editor;
+import processing.core.PApplet;
+import processing.data.JSONArray;
+import processing.data.JSONObject;
 
 public class CodeTemplatesManager implements KeyHandler {
-	protected Editor editor;
-
-	static Map<String, Macros> snippets = new HashMap<>();
+	private Editor editor;
+	static private Map<String, CodeTemplate> templates = new HashMap<>();
 
 	static {
-		snippets.put("sout", new Macros("System.out.println();", 2));
-		snippets.put("setup", new Macros("void setup() {\n\t\n}", 2));
-		snippets.put("draw", new Macros("void draw() {\n\t\n}", 2));
-		snippets.put("mpress", new Macros("void mousePressed() {\n\t\n}", 2));
-		snippets.put("kpress", new Macros("void keyPressed() {\n\t\n}", 2));
-		snippets.put("fori", new Macros("for (int i = 0; i < 10; i++) {\n\t\n}", 2));
-		snippets.put("switch", new Macros("switch () {\ncase 1:\n\t\n\tbreak;\n}", 10));
-	}
-
-	static class Macros {
-		String code;
-
-		public String getCode() {
-			return code;
-		}
-
-		public int getCaretPos() {
-			return caretPos;
-		}
-
-		int caretPos;
-
-		Macros(String code, int caretPos) {
-			this.code = code;
-			this.caretPos = caretPos;
-		}
-
+		templates.put("sout", new CodeTemplate( "System.out.println($);"));
+		
+		templates.put("if", new CodeTemplate("if ($) {\n    $\n}"));
+		templates.put("ifelse", new CodeTemplate("if ($) {\n    \n} else {\n    \n}"));
+		templates.put("switch", new CodeTemplate("switch ($) {\ncase 1:\n    \n    break;\n}"));
+		
+		templates.put("for", new CodeTemplate("for (int i = 0; i < $; i++) {\n    \n}"));
+		templates.put("while", new CodeTemplate("while ($) {\n    \n}"));
+		templates.put("do", new CodeTemplate("do {\n    \n} while ($);"));
+		
+		templates.put("try", new CodeTemplate("try {\n    $\n} catch (Exception e) {\n    e.printStackTrace();\n}"));
 	}
 
 	public CodeTemplatesManager(Editor editor) {
 		this.editor = editor;
+		EditorUtil.init(editor);
+
+		File jsonFile = new File(DATA_FOLDER, "templates.json");
+
+		if (jsonFile.exists()) {
+			addTemplatesFromFile(jsonFile, templates);
+	
+		} else {
+			// create one
+		}
+	
+	}
+
+	protected void addTemplatesFromFile(File file, Map<String, CodeTemplate> templates) {
+		JSONObject jsonFile = PApplet.loadJSONObject(file);
+		JSONArray user_templates = jsonFile.getJSONArray("User-Templates");
+
+		for (int i = 0; i < user_templates.size(); i++) {
+			JSONObject template = user_templates.getJSONObject(i);
+			JSONArray lines = template.getJSONArray("code");
+
+			StringBuilder source = new StringBuilder();
+			for (int j = 0; j < lines.size(); j++) {
+				source.append(lines.getString(j)).append(NL);
+			}
+			source.deleteCharAt(source.length() - 1);
+			
+			String key = template.getString("key");	
+			templates.put(key, new CodeTemplate(source.toString()));
+		}
 	}
 
 	@Override
 	public boolean handlePressed(KeyEvent e) {
-		int key = e.getKeyCode();
+		if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_SPACE) {
 
-		if (e.isControlDown() && key == KeyEvent.VK_SPACE) {
-			
 			String trigger = checkTrigger();
 
-			if (snippets.containsKey(trigger)) {
+			if (templates.containsKey(trigger)) {
 
 				int triggerEnd = editor.getCaretOffset();
 				int triggerStart = triggerEnd - trigger.length();
-				editor.setSelection(triggerStart, triggerEnd);
 
-				editor.setSelectedText(snippets.get(trigger).getCode());
-				int caret = editor.getCaretOffset() - snippets.get(trigger).getCaretPos();
-				editor.setSelection(caret, caret);
+				Selection s = new Selection(editor);
+
+				editor.setSelection(s.getStart(), triggerEnd);
+
+				int line = editor.getTextArea().getCaretLine();
+				int indent = EditorUtil.getLineIndentation(line);
+				
+				CodeTemplate temp = templates.get(trigger);
+				String code = temp.getCode(indent);
+
+				editor.setSelectedText(code);
+
+				int caret = temp.getCaretPosition(editor.getCaretOffset());
+				editor.setSelection(caret, caret);				
 			}
-			
+
 		}
 		return false;
 	}
@@ -82,7 +110,7 @@ public class CodeTemplatesManager implements KeyHandler {
 		String lineText = editor.getLineText(line);
 
 		StringBuilder sb = new StringBuilder();
-		int index = getPositionInsideLine() - 1;
+		int index = EditorUtil.caretPositionInsideLine() - 1;
 
 		while (index >= 0) {
 			char ch = lineText.charAt(index);
@@ -96,13 +124,7 @@ public class CodeTemplatesManager implements KeyHandler {
 		return sb.reverse().toString();
 	}
 
-	private int getPositionInsideLine() {
-		int caretOffset = editor.getCaretOffset();
-		int lineStartOffset = editor.getLineStartOffset(editor.getTextArea().getCaretLine());
-		return caretOffset - lineStartOffset;
-	}
-
-	private void println(Object... what) {
+	static private void println(Object... what) {
 		for (Object s : what) {
 			System.out.println(s.toString());
 		}

@@ -1,0 +1,80 @@
+{
+	"User-Templates": [
+		{
+			"key": "setup",
+			"code": [
+				"void setup() {",
+				"    size($);",
+				"}"
+			]
+		}, 
+		{
+			"key": "draw",
+			"code": [
+				"void draw() {",
+				"    background($);",
+				"}"
+			]
+		},
+		{
+			"key": "mpress",
+			"code": [
+				"void mousePressed() {",
+				"    $",
+				"}"
+			]
+		},
+		{
+			"key": "mclick",
+			"code": [
+				"void mouseClicked() {",
+				"    $",
+				"}"
+			]
+		},
+		{
+			"key": "mrelea",
+			"code": [
+				"void mouseReleased() {",
+				"    $",
+				"}"
+			]
+		},
+		{
+			"key": "kpress",
+			"code": [
+				"void keyPressed() {",
+				"    $",
+				"}"
+			]
+		},
+		{
+			"key": "ktyped",
+			"code": [
+				"void keyTyped() {",
+				"    $",
+				"}"
+			]
+		},
+		{
+			"key": "krelea",
+			"code": [
+				"void keyReleased() {",
+				"    $",
+				"}"
+			]
+		},
+		{
+			"key": "kpress2",
+			"code": [
+				"void keyPressed(KeyEvent e) {",
+				"    int ch = e.getKey();",
+				"    ",
+				"    if (ch == '$') {",
+				"        background(#FF0000);",
+				"    }",
+				"}"
+			]
+		}
+	]
+}

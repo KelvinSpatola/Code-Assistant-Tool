@@ -1,6 +1,10 @@
 package code_assistant.tool;
 
-import static code_assistant.util.Constants.*;
+import static code_assistant.util.Constants.BLOCK_CLOSING;
+import static code_assistant.util.Constants.BLOCK_OPENING;
+import static code_assistant.util.Constants.NL;
+import static code_assistant.util.Constants.TAB;
+import static code_assistant.util.Constants.TAB_SIZE;
 
 import java.awt.event.ActionEvent;
 import java.util.HashMap;
@@ -212,7 +216,7 @@ public class DefaultInputs implements ActionTrigger {
 		editor.setSelection(newSelectionStart, newSelectionEnd);
 
 		// RESOLVE INDENTATION
-		if (Preferences.getBoolean("code_assistant.move_lines.auto_indent") == false) {
+		if (!Preferences.getBoolean("code_assistant.move_lines.auto_indent")) {
 			editor.stopCompoundEdit();
 			return;
 		}
@@ -258,7 +262,7 @@ public class DefaultInputs implements ActionTrigger {
 		int caretPos = EditorUtil.caretPositionInsideLine();
 
 		if (Preferences.getBoolean("editor.indent")) {
-			
+
 			if (lineText.matches(BLOCK_OPENING)) {
 				indent = EditorUtil.getLineIndentation(line);
 

@@ -5,7 +5,7 @@ import processing.app.Preferences;
 
 public final class ToolPreferences {
 	private static final String preffix = format(CodeAssistant.TOOL_NAME).concat(".");
-	
+
 	private ToolPreferences() {
 	}
 
@@ -19,14 +19,14 @@ public final class ToolPreferences {
 		set("bracket_closing.replace_token", "true");
 	}
 
-	static public void set(String attribute, String value) {		
+	static public void set(String attribute, String value) {
 		String extendedAttribute = preffix + format(attribute);
-				
+
 		if (Preferences.get(extendedAttribute) == null) {
 			Preferences.set(extendedAttribute, value);
 		}
 	}
-	
+
 	static private String format(String str) {
 		return str.toLowerCase().replace(' ', '_');
 	}

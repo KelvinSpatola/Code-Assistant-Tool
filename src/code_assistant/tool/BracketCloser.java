@@ -1,14 +1,14 @@
 package code_assistant.tool;
 
 import java.awt.event.KeyEvent;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 import processing.app.Preferences;
 import processing.app.ui.Editor;
 
 public class BracketCloser implements KeyHandler {
-	private static final Map<Character, Character> tokens = new HashMap<Character, Character>();
+	private static final Map<Character, Character> tokens = new HashMap<>();
 	private final String CLOSING_BRACKETS = ")]}>";
 	private char nextToken;
 	private boolean enabled;
@@ -89,9 +89,9 @@ public class BracketCloser implements KeyHandler {
 			editor.setSelection(caret + 1, caret + 1);
 			nextToken = Character.UNASSIGNED;
 
-		} else if (isClosingBracket(token)) { 
+		} else if (isClosingBracket(token)) {
 			editor.insertText(String.valueOf(token));
-			
+
 		} else { // if it's either \' \" or *
 			addClosingToken(token);
 		}
@@ -100,7 +100,7 @@ public class BracketCloser implements KeyHandler {
 	private void wrapSelection(char token) {
 		StringBuilder selectedText = new StringBuilder(editor.getSelectedText());
 
-		if (Preferences.getBoolean("code_assistant.bracket_closing.replace_token") == false) {
+		if (!Preferences.getBoolean("code_assistant.bracket_closing.replace_token")) {
 			selectedText.insert(0, token).append(tokens.get(token)).toString();
 
 		} else {

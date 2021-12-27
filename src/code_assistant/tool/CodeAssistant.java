@@ -26,7 +26,6 @@
 package code_assistant.tool;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,13 +64,13 @@ public class CodeAssistant implements Tool, ActionTrigger {
 		final JavaModeInputs javaModeInputs = new JavaModeInputs(editor);
 		final BracketCloser bracketCloser = new BracketCloser(editor);
 		final CodeTemplatesManager completion = new CodeTemplatesManager(editor);
-	
+
 
 		InputManager inputHandler = new InputManager(editor,
-				defaultInputs, 
+				defaultInputs,
 				javaModeInputs,
 				this);
-		
+
 		inputHandler.addKeyHandler(javaModeInputs, bracketCloser, completion);
 		editor.getTextArea().setInputHandler(inputHandler);
 
@@ -79,24 +78,24 @@ public class CodeAssistant implements Tool, ActionTrigger {
 
 		if (!isRunning) {
 			isRunning = true;
-			editor.statusNotice(TOOL_NAME + " is running.");		
-			
+			editor.statusNotice(TOOL_NAME + " is running.");
+
 		} else {
 			editor.statusNotice(TOOL_NAME + " is already active.");
-		}		
+		}
 	}
-	
+
 	@Override
 	public Map<String, Action> getActions() {
 		Map<String, Action> actions = new HashMap<>();
-		
+
 		actions.put("F9", new AbstractAction("visit-website") {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Platform.openURL(Constants.WEBSITE);
 			}
 		});
-		
+
 		return actions;
 	}
 }

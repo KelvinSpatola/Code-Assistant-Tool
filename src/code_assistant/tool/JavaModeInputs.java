@@ -1,6 +1,10 @@
 package code_assistant.tool;
 
-import static code_assistant.util.Constants.*;
+import static code_assistant.util.Constants.BLOCK_CLOSING;
+import static code_assistant.util.Constants.BLOCK_OPENING;
+import static code_assistant.util.Constants.NL;
+import static code_assistant.util.Constants.TAB;
+import static code_assistant.util.Constants.TAB_SIZE;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -17,7 +21,6 @@ import code_assistant.util.EditorUtil;
 import code_assistant.util.Selection;
 import processing.app.Language;
 import processing.app.Preferences;
-import processing.app.syntax.Brackets;
 import processing.app.ui.Editor;
 
 public class JavaModeInputs implements ActionTrigger, KeyHandler {
@@ -368,7 +371,7 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
 			} else {
 				selectedText = s.getText();
 			}
-			
+
 			// and everything else is formatted here
 			String formattedText = editor.createFormatter().format(selectedText);
 
@@ -462,12 +465,12 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
 		if (editor.isSelectionActive()) {
 			String selectedText = editor.getSelectedText();
 			StringBuilder result = new StringBuilder();
-			
+
 			if (selectedText.startsWith(OPEN_COMMENT) && selectedText.endsWith(CLOSE_COMMENT)) {
 				result.append(selectedText);
-				result.delete(0, 3);		
-				result.delete(result.length() - 3, result.length());		
-				
+				result.delete(0, 3);
+				result.delete(result.length() - 3, result.length());
+
 			} else {
 				result.append(OPEN_COMMENT).append(" " + selectedText + " ").append(CLOSE_COMMENT);
 			}

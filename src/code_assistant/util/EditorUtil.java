@@ -1,11 +1,13 @@
 package code_assistant.util;
 
-import static code_assistant.util.Constants.*;
+import static code_assistant.util.Constants.BLOCK_CLOSING;
+import static code_assistant.util.Constants.BLOCK_OPENING;
+import static code_assistant.util.Constants.NL;
+import static code_assistant.util.Constants.TAB_SIZE;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-import processing.app.syntax.Brackets;
 import processing.app.ui.Editor;
 
 public final class EditorUtil {
@@ -108,15 +110,15 @@ public final class EditorUtil {
 
 			lineIndex++;
 		}
-		
+
 		isTheFirstBlock &= (depthUp == 1 && depthDown == 0);
 		isTheLastBlock &= (depthDown == 1 && depthUp == 0);
-				
+
 		if (isTheFirstBlock && isTheLastBlock)
 			return 0;
 		if (isTheFirstBlock || isTheLastBlock)
 			return 1;
-		
+
 		return Math.max(0, Math.min(depthUp, depthDown));
 	}
 
@@ -184,7 +186,7 @@ public final class EditorUtil {
 		}
 		return -1;
 	}
-	
+
 	// HACK
 	static public int getMatchingBraceLineAlt(int lineIndex) {
 		if (lineIndex < 0) {
@@ -216,7 +218,7 @@ public final class EditorUtil {
 		}
 		return -1;
 	}
-	
+
 	static public boolean checkBracketsBalance(String text, String leftBrackets, String rightBrackets) {
         // Using ArrayDeque is faster than using Stack class
         Deque<Character> stack = new ArrayDeque<>();
@@ -248,9 +250,9 @@ public final class EditorUtil {
 	static public int caretPositionInsideLine() {
 		return getPositionInsideLineWithOffset(editor.getCaretOffset());
 	}
-	
+
 	static public int getPositionInsideLineWithOffset(int offset) {
-		int line = editor.getTextArea().getLineOfOffset(offset);		
+		int line = editor.getTextArea().getLineOfOffset(offset);
 		int lineStartOffset = editor.getLineStartOffset(line);
 		return offset - lineStartOffset;
 	}
