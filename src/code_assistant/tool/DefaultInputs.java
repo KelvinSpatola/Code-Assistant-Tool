@@ -13,6 +13,7 @@ import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 
+import code_assistant.completion.CodeTemplatesManager;
 import code_assistant.util.EditorUtil;
 import code_assistant.util.Selection;
 import processing.app.Preferences;
@@ -295,6 +296,9 @@ public class DefaultInputs implements ActionTrigger {
 	}
 
 	private void handleTabulation(boolean isShiftDown) {
+		if (CodeTemplatesManager.isReadingKeyboardInput())
+			return;
+
 		if (isShiftDown) {
 			editor.handleOutdent();
 

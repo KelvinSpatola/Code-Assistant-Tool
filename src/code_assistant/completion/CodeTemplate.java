@@ -7,14 +7,15 @@ import java.util.Set;
 
 public class CodeTemplate {
 	static private final Set<String> placeholders = new HashSet<>();
+	static private boolean isReadingInput;
 	protected String[] sourceLines;
 	protected StringBuilder buffer;
-	protected int caretLine;
-	
+
 	private int indent;
+	private int positionIndex = 1;
 	private String sourceText;
 	private List<Integer> caretPositions;
-	private final char LF = '\n';
+	static private final char LF = '\n';
 
 	static {
 		placeholders.add("$");
@@ -28,17 +29,18 @@ public class CodeTemplate {
 	}
 
 	protected void processSourceText(String source) {
-		int index = 0;
+		int index = 0, indexSubstring = 0;
 
 		while (index < source.length()) {
 			char ch = source.charAt(index);
 
 			if (placeholders.contains(String.valueOf(ch))) {
-				caretPositions.add(index);
+				caretPositions.add(index - indexSubstring);
+				indexSubstring++;
 			}
 			index++;
 		}
-		
+
 		sourceText = removePlaceholders(source);
 		sourceLines = sourceText.split("\n");
 		setIndentation(0);
@@ -64,7 +66,7 @@ public class CodeTemplate {
 
 		return this;
 	}
-	
+
 	public String getCode() {
 		return getCode(indent);
 	}
@@ -76,13 +78,44 @@ public class CodeTemplate {
 		return buffer.toString();
 	}
 
-	public int getCaretPosition(int currentOffset) {
+	int startingPosition;
+
+	public int getStartCaretPosition(int currentOffset) {
 		int caret = caretPositions.get(0);
-		return currentOffset - buffer.length() + caret + (indent * calcLine(caret));
+		startingPosition = currentOffset - buffer.length();
+		println("startingPosition: " + startingPosition);
+
+		positionIndex = 1;
+		return startingPosition + caret + (indent * calcLine(caret));
 	}
-	
+
 	protected void addPlaceholder(String tag) {
 		placeholders.add(tag);
+	}
+
+	public void isReadingInput(boolean state) {
+		isReadingInput = state;
+	}
+
+	public boolean isReadingInput() {
+		return isReadingInput;
+	}
+
+	public int getNextPosition() {
+		int caret = 0;
+
+		if (positionIndex < caretPositions.size()) {
+			caret = caretPositions.get(positionIndex);		
+			positionIndex++;
+			return startingPosition + caret + (indent * calcLine(caret));
+			
+		} else {
+			isReadingInput(false);
+			int index = caretPositions.size() - 1;
+			caret = caretPositions.get(index);
+			return startingPosition + caret + (indent * calcLine(caret)) + 1;
+
+		}
 	}
 
 	private int calcLine(int offset) {
@@ -95,5 +128,15 @@ public class CodeTemplate {
 			index++;
 		}
 		return line;
+	}
+
+	static private void println(Object... what) {
+		for (Object s : what) {
+			System.out.println(s.toString());
+		}
+	}
+
+	class CaretPosition {
+
 	}
 }

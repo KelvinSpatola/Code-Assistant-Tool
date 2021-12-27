@@ -4,7 +4,7 @@
 			"key": "setup",
 			"code": [
 				"void setup() {",
-				"    size($);",
+				"    size($, $);",
 				"}"
 			]
 		}, 
@@ -71,7 +71,7 @@
 				"    int ch = e.getKey();",
 				"    ",
 				"    if (ch == '$') {",
-				"        background(#FF0000);",
+				"        background($);",
 				"    }",
 				"}"
 			]

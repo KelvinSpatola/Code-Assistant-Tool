@@ -18,23 +18,23 @@ import processing.data.JSONArray;
 import processing.data.JSONObject;
 
 public class CodeTemplatesManager implements KeyHandler {
+	static private boolean isReadingKeyboardInput;
+	private CodeTemplate currentTemplate;
 	private Editor editor;
-	static private Map<String, CodeTemplate> templates = new HashMap<>();
 
+	static private Map<String, CodeTemplate> templates = new HashMap<>();
 	static {
-		templates.put("sout", new CodeTemplate( "System.out.println($);"));
-		
+		templates.put("sout", new CodeTemplate("System.out.println($);"));
 		templates.put("if", new CodeTemplate("if ($) {\n    $\n}"));
-		templates.put("ifelse", new CodeTemplate("if ($) {\n    \n} else {\n    \n}"));
-		templates.put("switch", new CodeTemplate("switch ($) {\ncase 1:\n    \n    break;\n}"));
-		
-		templates.put("for", new CodeTemplate("for (int i = 0; i < $; i++) {\n    \n}"));
-		templates.put("while", new CodeTemplate("while ($) {\n    \n}"));
-		templates.put("do", new CodeTemplate("do {\n    \n} while ($);"));
-		
+		templates.put("ifelse", new CodeTemplate("if ($) {\n    $\n} else {\n    $\n}"));
+		templates.put("switch", new CodeTemplate("switch ($) {\ncase $:\n    $\n    break;\n}"));
+		templates.put("for", new CodeTemplate("for (int i = 0; i < $; i++) {\n    $\n}"));
+		templates.put("while", new CodeTemplate("while ($) {\n    $\n}"));
+		templates.put("do", new CodeTemplate("do {\n    $\n} while ($);"));
 		templates.put("try", new CodeTemplate("try {\n    $\n} catch (Exception e) {\n    e.printStackTrace();\n}"));
 	}
 
+	// CONSTRUCTOR
 	public CodeTemplatesManager(Editor editor) {
 		this.editor = editor;
 		EditorUtil.init(editor);
@@ -43,30 +43,11 @@ public class CodeTemplatesManager implements KeyHandler {
 
 		if (jsonFile.exists()) {
 			addTemplatesFromFile(jsonFile, templates);
-	
+
 		} else {
 			// create one
 		}
-	
-	}
 
-	protected void addTemplatesFromFile(File file, Map<String, CodeTemplate> templates) {
-		JSONObject jsonFile = PApplet.loadJSONObject(file);
-		JSONArray user_templates = jsonFile.getJSONArray("User-Templates");
-
-		for (int i = 0; i < user_templates.size(); i++) {
-			JSONObject template = user_templates.getJSONObject(i);
-			JSONArray lines = template.getJSONArray("code");
-
-			StringBuilder source = new StringBuilder();
-			for (int j = 0; j < lines.size(); j++) {
-				source.append(lines.getString(j)).append(NL);
-			}
-			source.deleteCharAt(source.length() - 1);
-			
-			String key = template.getString("key");	
-			templates.put(key, new CodeTemplate(source.toString()));
-		}
 	}
 
 	@Override
@@ -76,7 +57,6 @@ public class CodeTemplatesManager implements KeyHandler {
 			String trigger = checkTrigger();
 
 			if (templates.containsKey(trigger)) {
-
 				int triggerEnd = editor.getCaretOffset();
 				int triggerStart = triggerEnd - trigger.length();
 
@@ -86,18 +66,35 @@ public class CodeTemplatesManager implements KeyHandler {
 
 				int line = editor.getTextArea().getCaretLine();
 				int indent = EditorUtil.getLineIndentation(line);
-				
-				CodeTemplate temp = templates.get(trigger);
-				String code = temp.getCode(indent);
+
+				currentTemplate = templates.get(trigger);
+				String code = currentTemplate.getCode(indent);
 
 				editor.setSelectedText(code);
 
-				int caret = temp.getCaretPosition(editor.getCaretOffset());
-				editor.setSelection(caret, caret);				
+				int caret = currentTemplate.getStartCaretPosition(editor.getCaretOffset());
+				editor.setSelection(caret, caret);
+
+				currentTemplate.isReadingInput(true);
+				isReadingKeyboardInput = true;
 			}
 
+		} else if (e.getKeyCode() == KeyEvent.VK_TAB) {
+			handleNextPosition();
 		}
+		
 		return false;
+	}
+	
+	private void handleNextPosition() {
+		if (CodeTemplatesManager.isReadingKeyboardInput() && currentTemplate.isReadingInput()) {
+			int caret = currentTemplate.getNextPosition();
+			editor.setSelection(caret, caret);
+
+		} else {
+			currentTemplate = null;
+			isReadingKeyboardInput = false;
+		}
 	}
 
 	@Override
@@ -122,6 +119,29 @@ public class CodeTemplatesManager implements KeyHandler {
 			index--;
 		}
 		return sb.reverse().toString();
+	}
+
+	static public boolean isReadingKeyboardInput() {
+		return isReadingKeyboardInput;
+	}	
+
+	private void addTemplatesFromFile(File file, Map<String, CodeTemplate> templates) {
+		JSONObject jsonFile = PApplet.loadJSONObject(file);
+		JSONArray user_templates = jsonFile.getJSONArray("User-Templates");
+
+		for (int i = 0; i < user_templates.size(); i++) {
+			JSONObject template = user_templates.getJSONObject(i);
+			JSONArray lines = template.getJSONArray("code");
+
+			StringBuilder source = new StringBuilder();
+			for (int j = 0; j < lines.size(); j++) {
+				source.append(lines.getString(j)).append(NL);
+			}
+			source.deleteCharAt(source.length() - 1);
+
+			String key = template.getString("key");
+			templates.put(key, new CodeTemplate(source.toString()));
+		}
 	}
 
 	static private void println(Object... what) {
