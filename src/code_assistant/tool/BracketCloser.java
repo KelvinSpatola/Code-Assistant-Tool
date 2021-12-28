@@ -23,6 +23,9 @@ public class BracketCloser implements KeyHandler {
 		tokens.put('"', '"');
 		tokens.put('\'', '\'');
 	}
+	
+	// TODO: corrigir comportamento quando se introduz tokens dentro de uma strings
+	// TODO: corrigir comportamento quando se introduz um '<' dentro de um if() 
 
 	// CONSTRUCTOR
 	public BracketCloser(Editor editor) {

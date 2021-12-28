@@ -25,6 +25,7 @@
 
 package code_assistant.tool;
 
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.util.HashMap;
 import java.util.Map;

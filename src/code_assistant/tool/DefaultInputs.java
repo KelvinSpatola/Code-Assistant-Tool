@@ -96,6 +96,9 @@ public class DefaultInputs implements ActionTrigger {
 	private final Action INDENT_TEXT = new AbstractAction() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			if (CodeTemplatesManager.isReadingKeyboardInput())
+				return;
+			
 			handleTabulation(false);
 		}
 	};
@@ -103,6 +106,9 @@ public class DefaultInputs implements ActionTrigger {
 	private final Action OUTDENT_TEXT = new AbstractAction() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			if (CodeTemplatesManager.isReadingKeyboardInput())
+				return;
+			
 			handleTabulation(true);
 		}
 	};
@@ -296,9 +302,6 @@ public class DefaultInputs implements ActionTrigger {
 	}
 
 	private void handleTabulation(boolean isShiftDown) {
-		if (CodeTemplatesManager.isReadingKeyboardInput())
-			return;
-
 		if (isShiftDown) {
 			editor.handleOutdent();
 
