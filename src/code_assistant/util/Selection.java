@@ -3,46 +3,46 @@ package code_assistant.util;
 import processing.app.ui.Editor;
 
 public class Selection {
-	private String text = "";
-	private int start, end, startLine, endLine;
+    private String text = "";
+    private int start, end, startLine, endLine;
 
-	public Selection(Editor editor) {
-		startLine = editor.getTextArea().getSelectionStartLine();
-		endLine = editor.getTextArea().getSelectionStopLine();
+    public Selection(Editor editor) {
+        startLine = editor.getTextArea().getSelectionStartLine();
+        endLine = editor.getTextArea().getSelectionStopLine();
 
-		// in case this selection ends with the caret at the beginning of the last line,
-		// not selecting any text
-		if (editor.isSelectionActive() && editor.getLineStartOffset(endLine) == editor.getSelectionStop()) {
-			endLine--;
-		}
+        // in case this selection ends with the caret at the beginning of the last line,
+        // not selecting any text
+        if (editor.isSelectionActive() && editor.getLineStartOffset(endLine) == editor.getSelectionStop()) {
+            endLine--;
+        }
 
-		start = editor.getLineStartOffset(startLine);
-		end = Math.max(start, editor.getLineStopOffset(endLine) - 1);
+        start = editor.getLineStartOffset(startLine);
+        end = Math.max(start, editor.getLineStopOffset(endLine) - 1);
 
-		text = editor.getText(start, end);
-	}
+        text = editor.getText(start, end);
+    }
 
-	public int getStart() {
-		return start;
-	}
+    public int getStart() {
+        return start;
+    }
 
-	public int getEnd() {
-		return end;
-	}
+    public int getEnd() {
+        return end;
+    }
 
-	public int getStartLine() {
-		return startLine;
-	}
+    public int getStartLine() {
+        return startLine;
+    }
 
-	public int getEndLine() {
-		return endLine;
-	}
+    public int getEndLine() {
+        return endLine;
+    }
 
-	public String getText() {
-		return text;
-	}
+    public String getText() {
+        return text;
+    }
 
-	public boolean isEmpty() {
-		return text.isEmpty();
-	}
+    public boolean isEmpty() {
+        return text.isEmpty();
+    }
 }

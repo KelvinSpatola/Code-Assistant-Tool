@@ -4,31 +4,31 @@ import code_assistant.tool.CodeAssistant;
 import processing.app.Preferences;
 
 public final class ToolPreferences {
-	private static final String preffix = format(CodeAssistant.TOOL_NAME).concat(".");
+    private static final String preffix = format(CodeAssistant.TOOL_NAME).concat(".");
 
-	private ToolPreferences() {
-	}
+    private ToolPreferences() {
+    }
 
-	static public void init() {
-		// set default attributes
-		set("autoformat.strings", "true");
-		set("autoformat.comments", "true");
-		set("autoformat.line_length", "80");
-		set("move_lines.auto_indent", "true");
-		set("bracket_closing.enabled", "true");
-		set("bracket_closing.replace_token", "true");
-		set("templates.enabled", "true");
-	}
+    static public void init() {
+        // set default attributes
+        set("autoformat.strings", "true");
+        set("autoformat.comments", "true");
+        set("autoformat.line_length", "80");
+        set("move_lines.auto_indent", "true");
+        set("bracket_closing.enabled", "true");
+        set("bracket_closing.replace_token", "true");
+        set("templates.enabled", "true");
+    }
 
-	static public void set(String attribute, String value) {
-		String extendedAttribute = preffix + format(attribute);
+    static public void set(String attribute, String value) {
+        String extendedAttribute = preffix + format(attribute);
 
-		if (Preferences.get(extendedAttribute) == null) {
-			Preferences.set(extendedAttribute, value);
-		}
-	}
+        if (Preferences.get(extendedAttribute) == null) {
+            Preferences.set(extendedAttribute, value);
+        }
+    }
 
-	static private String format(String str) {
-		return str.toLowerCase().replace(' ', '_');
-	}
+    static private String format(String str) {
+        return str.toLowerCase().replace(' ', '_');
+    }
 }

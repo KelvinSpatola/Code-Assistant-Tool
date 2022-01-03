@@ -42,62 +42,62 @@ import processing.app.tools.Tool;
 import processing.app.ui.Editor;
 
 public class CodeAssistant implements Tool, ActionTrigger {
-	static public final String TOOL_NAME = "Code Assistant";
-	private Base base;
-	private boolean isRunning = false;
+    static public final String TOOL_NAME = "Code Assistant";
+    private Base base;
+    private boolean isRunning = false;
 
-	@Override
-	public String getMenuTitle() {
-		return TOOL_NAME;
-	}
+    @Override
+    public String getMenuTitle() {
+        return TOOL_NAME;
+    }
 
-	@Override
-	public void init(Base base) {
-		this.base = base;
-		ToolPreferences.init();
-	}
+    @Override
+    public void init(Base base) {
+        this.base = base;
+        ToolPreferences.init();
+    }
 
-	@Override
-	public void run() {
-		Editor editor = base.getActiveEditor();
+    @Override
+    public void run() {
+        Editor editor = base.getActiveEditor(); 
 
-		final DefaultInputs defaultInputs = new DefaultInputs(editor);
-		final JavaModeInputs javaModeInputs = new JavaModeInputs(editor);
+        final DefaultInputs defaultInputs = new DefaultInputs(editor);
+        final JavaModeInputs javaModeInputs = new JavaModeInputs(editor);
 
-		InputManager inputHandler = new InputManager(editor, defaultInputs, javaModeInputs, this);
+        InputManager inputHandler = new InputManager(editor, defaultInputs, javaModeInputs, this);
 
-		inputHandler.addKeyHandler(javaModeInputs);
+        inputHandler.addKeyHandler(javaModeInputs);
 
-		if (Preferences.getBoolean("code_assistant.bracket_closing.enabled")) {
-			inputHandler.addKeyHandler(new BracketCloser(editor));
-		}
-		if (Preferences.getBoolean("code_assistant.templates.enabled")) {
-			inputHandler.addKeyHandler(new CodeTemplatesManager(editor));
-		}
+        if (Preferences.getBoolean("code_assistant.bracket_closing.enabled")) {
+            inputHandler.addKeyHandler(new BracketCloser(editor));
+        }
+        if (Preferences.getBoolean("code_assistant.templates.enabled")) {
+            inputHandler.addKeyHandler(new CodeTemplatesManager(editor));
+        }
 
-		editor.getTextArea().setInputHandler(inputHandler);
+        editor.getTextArea().setInputHandler(inputHandler);
 
-		if (!isRunning) {
-			isRunning = true;
-			editor.statusNotice(TOOL_NAME + " is running.");
+        if (!isRunning) {
+            isRunning = true;
+            editor.statusNotice(TOOL_NAME + " is running.");
 
-		} else {
-			editor.statusNotice(TOOL_NAME + " is already active.");
-		}
+        } else {
+            editor.statusNotice(TOOL_NAME + " is already active.");
+        }
 
-		System.out.println(TOOL_NAME + " v. ##tool.prettyVersion## by Kelvin Spatola.");
-	}
+        System.out.println(TOOL_NAME + " v. ##tool.prettyVersion## by Kelvin Spatola.");
+    }
 
-	@Override
-	public Map<String, Action> getActions() {
-		Map<String, Action> actions = new HashMap<>();
+    @Override
+    public Map<String, Action> getActions() {
+        Map<String, Action> actions = new HashMap<>();
 
-		actions.put("F9", new AbstractAction("visit-website") {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Platform.openURL(Constants.WEBSITE);
-			}
-		});
-		return actions;
-	}
+        actions.put("F9", new AbstractAction("visit-website") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Platform.openURL(Constants.WEBSITE);
+            }
+        });
+        return actions;
+    }
 }
