@@ -40,6 +40,7 @@ import processing.app.Platform;
 import processing.app.Preferences;
 import processing.app.tools.Tool;
 import processing.app.ui.Editor;
+import processing.app.ui.EditorStatus;
 
 public class CodeAssistant implements Tool, ActionTrigger {
     static public final String TOOL_NAME = "Code Assistant";
@@ -60,32 +61,30 @@ public class CodeAssistant implements Tool, ActionTrigger {
     @Override
     public void run() {
         Editor editor = base.getActiveEditor(); 
+        
+        if (!isRunning) { // TODO: consertar essa verificacao pois funciona somente para um editor.
+            printHello();
 
-        final DefaultInputs defaultInputs = new DefaultInputs(editor);
-        final JavaModeInputs javaModeInputs = new JavaModeInputs(editor);
-
-        InputManager inputHandler = new InputManager(editor, defaultInputs, javaModeInputs, this);
-
-        inputHandler.addKeyHandler(javaModeInputs);
-
-        if (Preferences.getBoolean("code_assistant.bracket_closing.enabled")) {
-            inputHandler.addKeyHandler(new BracketCloser(editor));
-        }
-        if (Preferences.getBoolean("code_assistant.templates.enabled")) {
-            inputHandler.addKeyHandler(new CodeTemplatesManager(editor));
-        }
-
-        editor.getTextArea().setInputHandler(inputHandler);
-
-        if (!isRunning) {
-            isRunning = true;
+            final DefaultInputs defaultInputs = new DefaultInputs(editor);
+            final JavaModeInputs javaModeInputs = new JavaModeInputs(editor);
+            final InputManager inputHandler = new InputManager(editor, defaultInputs, javaModeInputs, this);
+            
+            inputHandler.addKeyHandler(javaModeInputs);
+            if (Preferences.getBoolean("code_assistant.bracket_closing.enabled")) {
+                inputHandler.addKeyHandler(new BracketCloser(editor));
+            }
+            if (Preferences.getBoolean("code_assistant.templates.enabled")) {
+                inputHandler.addKeyHandler(new CodeTemplatesManager(editor));
+            }
+            editor.getTextArea().setInputHandler(inputHandler);
+            
             editor.statusNotice(TOOL_NAME + " is running.");
-
+            isRunning = true;
+            
         } else {
-            editor.statusNotice(TOOL_NAME + " is already active.");
+            editor.statusMessage(TOOL_NAME + " is already active.", EditorStatus.WARNING);
+            editor.getConsole().clear();
         }
-
-        System.out.println(TOOL_NAME + " v. ##tool.prettyVersion## by Kelvin Spatola.");
     }
 
     @Override
@@ -99,5 +98,11 @@ public class CodeAssistant implements Tool, ActionTrigger {
             }
         });
         return actions;
+    }
+    
+    public void printHello() {
+        System.out.println("====================================================");
+        System.out.println("   Code Assistant 0.0.1 created by Kelvin Spatola   ");
+        System.out.println("====================================================");
     }
 }

@@ -1,5 +1,7 @@
 package code_assistant.util;
 
+import static code_assistant.util.Constants.TOOL_FOLDER;
+
 import java.io.File;
 
 import processing.app.Base;
@@ -7,6 +9,7 @@ import processing.app.Preferences;
 
 public final class Constants {
     public static final File TOOL_FOLDER = new File(Base.getSketchbookToolsFolder(), "CodeAssistant");
+    public static final File TOOL_JAR = new File(TOOL_FOLDER, "tool" + File.separator + "CodeAssistant.jar");
     public static final File DATA_FOLDER = new File(TOOL_FOLDER, "data");
 
     public static final String WEBSITE = "https://github.com/KelvinSpatola/Code-Assistant-Tool";

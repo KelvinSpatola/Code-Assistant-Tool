@@ -127,13 +127,7 @@ public class CodeTemplate {
         }
     }
 
-    boolean skip;
-
     public boolean contains(int caret) {
-//		println("caret: " + caret + " - rightBoundary: " + rightBoundary);
-//		skip = caret == rightBoundary;
-//		return ((caret >= leftBoundary && caret < rightBoundary) || skip);
-//		^^ same as:
         return (caret >= leftBoundary && caret <= rightBoundary);
     }
 

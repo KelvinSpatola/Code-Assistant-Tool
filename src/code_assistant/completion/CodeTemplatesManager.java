@@ -1,12 +1,27 @@
 package code_assistant.completion;
 
 import static code_assistant.util.Constants.DATA_FOLDER;
+import static code_assistant.util.Constants.TOOL_FOLDER;
+import static code_assistant.util.Constants.TOOL_JAR;
 import static code_assistant.util.Constants.NL;
 
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URL;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
@@ -18,6 +33,7 @@ import processing.app.ui.Editor;
 import processing.core.PApplet;
 import processing.data.JSONArray;
 import processing.data.JSONObject;
+
 
 public class CodeTemplatesManager implements KeyHandler, CaretListener {
     static private Map<String, CodeTemplate> templates = new HashMap<>();
@@ -34,7 +50,7 @@ public class CodeTemplatesManager implements KeyHandler, CaretListener {
         templates.put("while", new CodeTemplate("while ($) {\n    $\n}"));
         templates.put("do", new CodeTemplate("do {\n    $\n} while ($);"));
         templates.put("try", new CodeTemplate("try {\n    $\n} catch (Exception e) {\n    e.printStackTrace();\n}"));
-    }
+    } 
 
     // CONSTRUCTOR
     public CodeTemplatesManager(Editor editor) {
@@ -43,15 +59,14 @@ public class CodeTemplatesManager implements KeyHandler, CaretListener {
 
         editor.getTextArea().addCaretListener(this);
 
-        File jsonFile = new File(DATA_FOLDER, "templates.json");
-
-        if (jsonFile.exists()) {
-            addTemplatesFromFile(jsonFile, templates);
-
-        } else {
-            // create one 
+        File templatesFile = new File(DATA_FOLDER, "templates.json");
+        if (!templatesFile.exists()) {
+            System.out.println("Creating a new 'templates.json' file at:\n    " + templatesFile.getAbsolutePath());
+            System.out.println("You can modify this file and add your own templates there.");
+            templatesFile = createNewTemplatesFile();
         }
 
+        addTemplatesFromFile(templatesFile, templates);
     }
 
     @Override
@@ -59,7 +74,6 @@ public class CodeTemplatesManager implements KeyHandler, CaretListener {
         int keyCode = e.getKeyCode();
 
         if (e.isControlDown() && keyCode == KeyEvent.VK_SPACE) {
-
             String trigger = checkTrigger();
 
             if (templates.containsKey(trigger)) {
@@ -75,7 +89,6 @@ public class CodeTemplatesManager implements KeyHandler, CaretListener {
             }
 
         } else if (isReadingKeyboardInput()) {
-
             if (BracketCloser.isSkipped())
                 return false;
 
@@ -139,6 +152,42 @@ public class CodeTemplatesManager implements KeyHandler, CaretListener {
             index--;
         }
         return sb.reverse().toString();
+    }
+    
+    private File createNewTemplatesFile() {
+        final String FILE_TO_EXTRACT = "data/templates.json";
+
+        try (ZipInputStream zip = new ZipInputStream(new FileInputStream(TOOL_JAR))) {
+            ZipEntry entry = null;
+
+            while ((entry = zip.getNextEntry()) != null) {
+                if (entry.getName().equals(FILE_TO_EXTRACT)) {
+                    File newFile = new File(TOOL_FOLDER, FILE_TO_EXTRACT);
+
+                    // fix for Windows-created archives
+                    File parent = newFile.getParentFile();
+                    if (!parent.isDirectory() && !parent.mkdirs()) {
+                        throw new IOException("Failed to create directory " + parent);
+                    }
+
+                    // write file content
+                    try (FileOutputStream fos = new FileOutputStream(newFile)) {
+                        byte[] buffer = new byte[1024];
+                        int size;
+                        while ((size = zip.read(buffer)) > 0) {
+                            fos.write(buffer, 0, size);
+                        }
+                    }
+                    return newFile;
+                }
+            }
+            zip.closeEntry();
+
+        } catch (IOException e) {
+            System.err.println("Unable to create a new 'templates.json' file.");
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private void addTemplatesFromFile(File file, Map<String, CodeTemplate> templates) {
