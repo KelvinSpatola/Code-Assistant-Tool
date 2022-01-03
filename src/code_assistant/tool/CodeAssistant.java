@@ -25,7 +25,6 @@
 
 package code_assistant.tool;
 
-import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,6 +37,7 @@ import code_assistant.util.Constants;
 import code_assistant.util.ToolPreferences;
 import processing.app.Base;
 import processing.app.Platform;
+import processing.app.Preferences;
 import processing.app.tools.Tool;
 import processing.app.ui.Editor;
 
@@ -63,19 +63,19 @@ public class CodeAssistant implements Tool, ActionTrigger {
 
 		final DefaultInputs defaultInputs = new DefaultInputs(editor);
 		final JavaModeInputs javaModeInputs = new JavaModeInputs(editor);
-		final BracketCloser bracketCloser = new BracketCloser(editor);
-		final CodeTemplatesManager completion = new CodeTemplatesManager(editor);
 
+		InputManager inputHandler = new InputManager(editor, defaultInputs, javaModeInputs, this);
 
-		InputManager inputHandler = new InputManager(editor,
-				defaultInputs,
-				javaModeInputs,
-				this);
+		inputHandler.addKeyHandler(javaModeInputs);
 
-		inputHandler.addKeyHandler(javaModeInputs, bracketCloser, completion);
+		if (Preferences.getBoolean("code_assistant.bracket_closing.enabled")) {
+			inputHandler.addKeyHandler(new BracketCloser(editor));
+		}
+		if (Preferences.getBoolean("code_assistant.templates.enabled")) {
+			inputHandler.addKeyHandler(new CodeTemplatesManager(editor));
+		}
+
 		editor.getTextArea().setInputHandler(inputHandler);
-
-		System.out.println(TOOL_NAME + " v. ##tool.prettyVersion## by Kelvin Spatola.");
 
 		if (!isRunning) {
 			isRunning = true;
@@ -84,6 +84,8 @@ public class CodeAssistant implements Tool, ActionTrigger {
 		} else {
 			editor.statusNotice(TOOL_NAME + " is already active.");
 		}
+
+		System.out.println(TOOL_NAME + " v. ##tool.prettyVersion## by Kelvin Spatola.");
 	}
 
 	@Override
@@ -96,7 +98,6 @@ public class CodeAssistant implements Tool, ActionTrigger {
 				Platform.openURL(Constants.WEBSITE);
 			}
 		});
-
 		return actions;
 	}
 }

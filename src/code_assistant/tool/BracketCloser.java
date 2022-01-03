@@ -8,12 +8,10 @@ import processing.app.Preferences;
 import processing.app.ui.Editor;
 
 public class BracketCloser implements KeyHandler {
-	private static final Map<Character, Character> tokens = new HashMap<>();
-	private final String CLOSING_BRACKETS = ")]}>";
+	static private final Map<Character, Character> tokens = new HashMap<>();
+	static private boolean isSkipped;
 	private char nextToken;
-	private boolean enabled;
-
-	protected Editor editor;
+	private Editor editor;
 
 	static {
 		tokens.put('(', ')');
@@ -23,38 +21,36 @@ public class BracketCloser implements KeyHandler {
 		tokens.put('"', '"');
 		tokens.put('\'', '\'');
 	}
-	
-	// TODO: corrigir comportamento quando se introduz tokens dentro de uma strings
-	// TODO: corrigir comportamento quando se introduz um '<' dentro de um if() 
 
 	// CONSTRUCTOR
 	public BracketCloser(Editor editor) {
 		this.editor = editor;
-		enabled = Preferences.getBoolean("code_assistant.bracket_closing.enabled");
 	}
 
 	@Override
 	public boolean handlePressed(KeyEvent e) {
 		char keyChar = e.getKeyChar();
+		isSkipped = false;
 
 		if (!tokens.containsKey(keyChar) && !tokens.containsValue(keyChar)) {
 			// this keyChar is not our business, so let's get the hell outta here
 			return false;
 		}
 
-		// closing - enabled
+		// closing
 		if (keyChar == nextToken) {
 			skipNextToken(keyChar);
 			return false;
 		}
 
-		// closing - enabled or disabled
+		// closing
 		if (isClosingBracket(keyChar)) {
 			editor.insertText(String.valueOf(keyChar));
+			return false;
 		}
 
-		// opening - enabled
-		if (isEnabled() && tokens.containsKey(keyChar)) {
+		// opening
+		if (tokens.containsKey(keyChar)) {
 			// if selection is active we must wrap a pair of tokens around the selection
 			if (editor.isSelectionActive())
 				wrapSelection(keyChar);
@@ -69,17 +65,30 @@ public class BracketCloser implements KeyHandler {
 	@Override // from the KeyHandler interface
 	public boolean handleTyped(KeyEvent e) {
 		char keyChar = e.getKeyChar();
-		return (isClosingBracket(keyChar) || (isEnabled() && tokens.containsKey(keyChar)));
+		return tokens.containsKey(keyChar) || isClosingBracket(keyChar);
+	}
+
+	static public boolean isSkipped() {
+		return isSkipped;
 	}
 
 	private void addClosingToken(char token) {
+		int line = editor.getTextArea().getCaretLine();	
+		int caret = editor.getCaretOffset() - editor.getLineStartOffset(line);
+		String lineText = editor.getLineText(line);
+		
+		if (isTokenInside("'", "'", caret, lineText)) {
+			editor.insertText(String.valueOf(token));
+			return;
+		}
+
+		if (token == '<' && (isTokenInside("(", ")", caret, lineText))) {
+			editor.insertText(String.valueOf(token)); 
+			return;
+		}
+
 		nextToken = tokens.get(token);
-
-		StringBuilder result = new StringBuilder();
-		result.append(token).append(nextToken);
-
-		editor.insertText(result.toString());
-
+		editor.insertText("" + token + nextToken);
 		// step back one char so that it is in the middle of the tokens
 		int newCaret = editor.getCaretOffset() - 1;
 		editor.setSelection(newCaret, newCaret);
@@ -87,15 +96,17 @@ public class BracketCloser implements KeyHandler {
 
 	private void skipNextToken(char token) {
 		int caret = editor.getCaretOffset();
+		char[] code = editor.getText().toCharArray();
 
-		if (editor.getText().charAt(caret) == nextToken) {
+		if (caret < code.length && code[caret] == nextToken) {
 			editor.setSelection(caret + 1, caret + 1);
 			nextToken = Character.UNASSIGNED;
+			isSkipped = true;
 
-		} else if (isClosingBracket(token)) {
+		} else if (isClosingBracket(token)) { // if it's one of these: )]}>
 			editor.insertText(String.valueOf(token));
 
-		} else { // if it's either \' \" or *
+		} else { // if it's either \' or \"
 			addClosingToken(token);
 		}
 	}
@@ -139,11 +150,21 @@ public class BracketCloser implements KeyHandler {
 		editor.stopCompoundEdit();
 	}
 
-	protected boolean isEnabled() {
-		return enabled;
+	private boolean isTokenInside(String openToken, String closeToken, int caretPos, String lineText) {		
+		if (!lineText.matches("^.*\\" + openToken + ".*?\\" + closeToken + ".*$"))
+			return false;
+
+		int openIndex = lineText.lastIndexOf(openToken, caretPos) - 1;
+		int closeIndex = lineText.indexOf(closeToken, caretPos);
+		
+		if (openIndex == -1 || closeIndex == -1)
+			return false;
+
+		return (caretPos > openIndex && caretPos <= closeIndex);
 	}
 
-	protected boolean isClosingBracket(char ch) {
-		return CLOSING_BRACKETS.contains(String.valueOf(ch));
+	private boolean isClosingBracket(char ch) {
+		String tokens = ")]}>";
+		return tokens.contains(String.valueOf(ch));
 	}
 }

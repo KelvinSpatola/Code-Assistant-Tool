@@ -43,7 +43,7 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
 		actions.put("ENTER", HANDLE_ENTER);
 		actions.put("CA+RIGHT", EXPAND_SELECTION);
 		actions.put("C+T", FORMAT_SELECTED_TEXT);
-		actions.put("CS+A", TOGGLE_BLOCK_COMMENT);
+		actions.put("C+7", TOGGLE_BLOCK_COMMENT);
 	}
 
 	@Override // from the ActionTrigger interface
@@ -79,7 +79,15 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
 					editor.setSelection(editor.getLineStartOffset(line), editor.getCaretOffset());
 				}
 			}
-			editor.setSelectedText(EditorUtil.addSpaces(indent));
+
+			String result = EditorUtil.addSpaces(indent);
+
+			// if the user chooses to disable the bracket closing feature in the Preferences.txt file,
+			// we should then insert a closing brace here. Otherwise this is handled by the BracketCloser class.
+			if (!Preferences.getBoolean("code_assistant.bracket_closing.enabled"))
+				result += CLOSE_BRACE;
+
+			editor.setSelectedText(result);
 			editor.stopCompoundEdit();
 		}
 
@@ -114,7 +122,7 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
 		public void actionPerformed(ActionEvent e) {
 			if (CodeTemplatesManager.isReadingKeyboardInput())
 				return;
-			
+
 			handleEnter();
 		}
 	};
@@ -173,7 +181,7 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
 			}
 
 			if (lineText.matches(BLOCK_OPENING)) {
-				if (Preferences.getBoolean("code_assistant.bracket_closing.auto_close")) {
+				if (Preferences.getBoolean("code_assistant.bracket_closing.enabled")) {
 
 					boolean bracketsAreBalanced = EditorUtil.checkBracketsBalance(editor.getText(), "{", "}");
 					boolean hasClosingBrace = lineText.matches(BLOCK_CLOSING);

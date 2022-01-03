@@ -98,7 +98,7 @@ public class DefaultInputs implements ActionTrigger {
 		public void actionPerformed(ActionEvent e) {
 			if (CodeTemplatesManager.isReadingKeyboardInput())
 				return;
-			
+
 			handleTabulation(false);
 		}
 	};
@@ -108,7 +108,7 @@ public class DefaultInputs implements ActionTrigger {
 		public void actionPerformed(ActionEvent e) {
 			if (CodeTemplatesManager.isReadingKeyboardInput())
 				return;
-			
+
 			handleTabulation(true);
 		}
 	};

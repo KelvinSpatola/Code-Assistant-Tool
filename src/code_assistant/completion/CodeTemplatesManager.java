@@ -2,11 +2,7 @@ package code_assistant.completion;
 
 import static code_assistant.util.Constants.DATA_FOLDER;
 import static code_assistant.util.Constants.NL;
-import static code_assistant.util.Constants.TAB_SIZE;
 
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.GraphicsConfiguration;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.HashMap;
@@ -15,23 +11,20 @@ import java.util.Map;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 
+import code_assistant.tool.BracketCloser;
 import code_assistant.tool.KeyHandler;
 import code_assistant.util.EditorUtil;
-import code_assistant.util.Selection;
-import processing.app.Language;
-import processing.app.syntax.JEditTextArea;
 import processing.app.ui.Editor;
-import processing.app.ui.EditorStatus;
 import processing.core.PApplet;
 import processing.data.JSONArray;
 import processing.data.JSONObject;
 
-public class CodeTemplatesManager implements KeyHandler, CaretListener/*, Runnable*/ {
-	static private CodeTemplate currentTemplate;
-	static private int globalCaret;
+public class CodeTemplatesManager implements KeyHandler, CaretListener {
+	static private Map<String, CodeTemplate> templates = new HashMap<>();
+	static private boolean isReadingKeyboardInput;
+	private CodeTemplate currentTemplate;
 	private Editor editor;
 
-	static private Map<String, CodeTemplate> templates = new HashMap<>();
 	static {
 		templates.put("sout", new CodeTemplate("System.out.println($);"));
 		templates.put("if", new CodeTemplate("if ($) {\n    $\n}"));
@@ -58,130 +51,75 @@ public class CodeTemplatesManager implements KeyHandler, CaretListener/*, Runnab
 		} else {
 			// create one
 		}
-//		textarea = editor.getTextArea();
-//		gfx = textarea.getGraphics();
 
-//		Thread thread = new Thread(this);
-//		thread.setDaemon(true);
-//		thread.start();
 	}
 
 	@Override
 	public boolean handlePressed(KeyEvent e) {
 		int keyCode = e.getKeyCode();
 
-		if (e.isShiftDown()) {
-
-		}
-
 		if (e.isControlDown() && keyCode == KeyEvent.VK_SPACE) {
 
 			String trigger = checkTrigger();
 
 			if (templates.containsKey(trigger)) {
-				int triggerEnd = editor.getCaretOffset();
-				int triggerStart = triggerEnd - trigger.length();
-
-				Selection s = new Selection(editor);
-
-				editor.setSelection(s.getStart(), triggerEnd);
-
 				int line = editor.getTextArea().getCaretLine();
 				int indent = EditorUtil.getLineIndentation(line);
 
 				currentTemplate = templates.get(trigger);
-				String code = currentTemplate.getCode(indent);
-
-				editor.setSelectedText(code);
+				editor.setSelection(editor.getLineStartOffset(line), editor.getCaretOffset());
+				editor.setSelectedText(currentTemplate.getCode(indent));
 
 				int caret = currentTemplate.getStartCaretPosition(editor.getCaretOffset());
 				editor.setSelection(caret, caret);
 			}
 
-		} else if (keyCode == KeyEvent.VK_ENTER || keyCode == KeyEvent.VK_TAB) {
-			// handleNextPosition();
-			if (isReadingKeyboardInput()) {
+		} else if (isReadingKeyboardInput()) {
 
-				if (currentTemplate.isLastCandidate()) {
-					currentTemplate = null;
-					System.out.println("DONE");
-					return false;
-				}
+			if (BracketCloser.isSkipped())
+				return false;
 
+			if (currentTemplate.isLastCandidate()) {
+				currentTemplate = null;
+				System.out.println("DONE");
+				return false;
+			}
+
+			if (keyCode == KeyEvent.VK_ENTER || keyCode == KeyEvent.VK_TAB) {
 				int caret = currentTemplate.getNextPosition();
 				editor.setSelection(caret, caret);
 				System.out.println("NEXT");
 
 			} else {
-				currentTemplate = null;
-				System.out.println("isReading: false 1");
+				currentTemplate.readInput(e);
 			}
 
 		} else {
-
-			if (isReadingKeyboardInput()) {
-
-				if (currentTemplate.isLastCandidate()) {
-					currentTemplate = null;
-					System.out.println("DONE");
-					return false;
-				}
-
-				currentTemplate.readInput(e, editor);
-
-			} else {
-				currentTemplate = null;
-			}
-
-			System.out.println("isReading: " + isReadingKeyboardInput() + " 2");
+			currentTemplate = null;
 		}
 
 //		if(isReadingKeyboardInput()) {
-//			editor.statusMessage("EDITING PARAMETERS", EditorStatus.WARNING);			
-//		} 
-
+//			editor.statusMessage("EDITING PARAMETERS", EditorStatus.WARNING);
+//		}
 		return false;
 	}
 
-	static public boolean isReadingKeyboardInput() {
-		if (currentTemplate == null)
-			return false;
-
-		return currentTemplate.contains(globalCaret);
-	}
-
-//	JEditTextArea textarea;
-//	Graphics gfx;
-
 	@Override
 	public void caretUpdate(CaretEvent e) {
-		globalCaret = e.getDot();
-		// System.out.print(globalCaret + " - ");
-
-	/*	int line = textarea.getCaretLine();
-		int caretPos = editor.getCaretOffset() - textarea.getLineStartOffset(line);
-		
-		int x = 50;
-		int y = textarea.lineToY(line);
-		int w = textarea._offsetToX(line, caretPos) - x;
-		int h = textarea.getPainter().getLineHeight();
-
-		//textarea.getPainter().setBackground(new Color(120, 120, 0));
-		//textarea.getPainter().invalidateLine(textarea.getCaretLine());
-		
-		gfx.setColor(new Color(255, 255, 0));
-		//gfx.setClip(x, y, w, h);
-		gfx.drawRect(x, y, w, h);
-		//editor.getTextArea().paint(gfx); */
+		if (currentTemplate == null) {
+			isReadingKeyboardInput = false;
+			return;
+		}
+		isReadingKeyboardInput = currentTemplate.contains(e.getDot());
 	}
-
-//	private void handleNextPosition() {
-//	
-//	}
 
 	@Override
 	public boolean handleTyped(KeyEvent e) {
 		return false;
+	}
+
+	static public boolean isReadingKeyboardInput() {
+		return isReadingKeyboardInput;
 	}
 
 	private String checkTrigger() {

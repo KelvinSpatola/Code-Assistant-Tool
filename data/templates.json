@@ -4,7 +4,7 @@
 			"key": "setup",
 			"code": [
 				"void setup() {",
-				"    size($, $);",
+				"    size(#, #);",
 				"}"
 			]
 		}, 
@@ -12,7 +12,7 @@
 			"key": "draw",
 			"code": [
 				"void draw() {",
-				"    background($);",
+				"    background(#);",
 				"}"
 			]
 		},
@@ -20,7 +20,7 @@
 			"key": "mpress",
 			"code": [
 				"void mousePressed() {",
-				"    $",
+				"    #",
 				"}"
 			]
 		},
@@ -28,7 +28,7 @@
 			"key": "mclick",
 			"code": [
 				"void mouseClicked() {",
-				"    $",
+				"    #",
 				"}"
 			]
 		},
@@ -36,7 +36,7 @@
 			"key": "mrelea",
 			"code": [
 				"void mouseReleased() {",
-				"    $",
+				"    #",
 				"}"
 			]
 		},
@@ -44,7 +44,7 @@
 			"key": "kpress",
 			"code": [
 				"void keyPressed() {",
-				"    $",
+				"    #",
 				"}"
 			]
 		},
@@ -52,7 +52,7 @@
 			"key": "ktyped",
 			"code": [
 				"void keyTyped() {",
-				"    $",
+				"    #",
 				"}"
 			]
 		},
@@ -60,7 +60,7 @@
 			"key": "krelea",
 			"code": [
 				"void keyReleased() {",
-				"    $",
+				"    #",
 				"}"
 			]
 		},
@@ -70,8 +70,8 @@
 				"void keyPressed(KeyEvent e) {",
 				"    int ch = e.getKey();",
 				"    ",
-				"    if (ch == '$') {",
-				"        background($);",
+				"    if (ch == '#') {",
+				"        background(#);",
 				"    }",
 				"}"
 			]

@@ -17,6 +17,7 @@ public final class ToolPreferences {
 		set("move_lines.auto_indent", "true");
 		set("bracket_closing.enabled", "true");
 		set("bracket_closing.replace_token", "true");
+		set("templates.enabled", "true");
 	}
 
 	static public void set(String attribute, String value) {
