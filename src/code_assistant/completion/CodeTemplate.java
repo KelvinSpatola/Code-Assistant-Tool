@@ -16,9 +16,9 @@ public class CodeTemplate {
     private String sourceText;
     private int indent;
 
-    private List<CaretPosition> caretPositions;
+    private List<CaretPosition> positions;
     private int positionIndex;
-    private boolean isLastCandidate;
+    private boolean isLastPosition;
 
     private int startingPosition;
     private int leftBoundary, rightBoundary;
@@ -31,7 +31,7 @@ public class CodeTemplate {
     // CONSTRUCTOR
     public CodeTemplate(String source) {
         buffer = new StringBuilder();
-        caretPositions = new ArrayList<>();
+        positions = new ArrayList<>();
         processSourceText(source);
     }
 
@@ -46,7 +46,7 @@ public class CodeTemplate {
         return buffer.toString();
     }
 
-    public final CodeTemplate setIndentation(int indent) {
+    public final void setIndentation(int indent) {
         this.indent = indent;
 
         String spaces = new String(new char[indent]).replace('\0', ' ');
@@ -56,49 +56,48 @@ public class CodeTemplate {
             buffer.append(spaces).append(line).append(LF);
         }
         buffer.deleteCharAt(buffer.length() - 1);
-
-        return this;
     }
 
-    public int getStartCaretPosition(int currentOffset) {
-        positionIndex = 0;
-        isLastCandidate = false;
+    public int getStartPosition(int currentOffset) {
+        if (positions.isEmpty()) {
+            return currentOffset;
+        }
 
-        for (CaretPosition c : caretPositions) {
+        positionIndex = 0;
+        isLastPosition = false;
+
+        for (CaretPosition c : positions) {
             c.reset();
         }
 
-        int caret = caretPositions.get(positionIndex).currentOffset;
-
+        int caret = positions.get(positionIndex).currentOffset;
         startingPosition = currentOffset - buffer.length();
 
         leftBoundary = startingPosition + caret + (indent * calcLine(caret));
         rightBoundary = leftBoundary + 1;
+        return leftBoundary;
+    }
+
+    public int nextPosition() {
+        int caret = 0, delta = 0;
+        positionIndex++;
+
+        for (int i = 0; i < positionIndex && i < positions.size(); i++) {
+            delta += positions.get(i).delta();
+        }
+
+        caret = positions.get(positionIndex).startOffset;
+        leftBoundary = startingPosition + caret + (indent * calcLine(caret)) + delta;
+        rightBoundary = leftBoundary + 1;
+
+        if (positionIndex == positions.size() - 1)
+            isLastPosition = true;
 
         return leftBoundary;
     }
 
-    public int getNextPosition() {
-        int caret = 0, delta = 0;
-        positionIndex++;
-
-        for (int i = 0; i < positionIndex; i++) {
-            delta += caretPositions.get(i).delta();
-        }
-
-        if (positionIndex < caretPositions.size()) {
-            caret = caretPositions.get(positionIndex).startOffset;
-            leftBoundary = startingPosition + caret + (indent * calcLine(caret)) + delta;
-
-        } else {
-            int last = caretPositions.size() - 1;
-            caret = caretPositions.get(last).startOffset;
-            leftBoundary = startingPosition + caret + (indent * calcLine(caret)) + delta + 1;
-            isLastCandidate = true;
-        }
-
-        rightBoundary = leftBoundary + 1;
-        return leftBoundary;
+    public boolean isLastPosition() {
+        return isLastPosition;
     }
 
     public void readInput(KeyEvent e) {
@@ -109,30 +108,26 @@ public class CodeTemplate {
         if (key == 8 || key >= 32 && key <= 127) { // 8 -> VK_BACK_SPACE
 
             if (key == KeyEvent.VK_BACK_SPACE || key == KeyEvent.VK_DELETE) {
-                caretPositions.get(positionIndex).currentOffset--;
+                positions.get(positionIndex).currentOffset--;
                 rightBoundary--;
                 return;
             }
 
             if (Preferences.getBoolean("code_assistant.bracket_closing.enabled")) {
                 if (isOpeningBracket(e.getKeyChar())) { // ( [ { \" \'
-                    caretPositions.get(positionIndex).currentOffset += 2;
+                    positions.get(positionIndex).currentOffset += 2;
                     rightBoundary += 2;
                     return;
                 }
             }
 
-            caretPositions.get(positionIndex).currentOffset++;
+            positions.get(positionIndex).currentOffset++;
             rightBoundary++;
         }
     }
 
     public boolean contains(int caret) {
         return (caret >= leftBoundary && caret <= rightBoundary);
-    }
-
-    public boolean isLastCandidate() {
-        return isLastCandidate;
     }
 
     protected void processSourceText(String source) {
@@ -142,7 +137,7 @@ public class CodeTemplate {
             char ch = source.charAt(index);
 
             if (placeholders.contains(String.valueOf(ch))) {
-                caretPositions.add(new CaretPosition(index - indexSubstring));
+                positions.add(new CaretPosition(index - indexSubstring));
                 indexSubstring++;
             }
             index++;
@@ -160,11 +155,7 @@ public class CodeTemplate {
         return source;
     }
 
-    protected void addPlaceholder(String tag) { // do we really need this?
-        placeholders.add(tag);
-    }
-
-    protected boolean isOpeningBracket(char ch) {
+    private boolean isOpeningBracket(char ch) {
         String tokens = "([{\"\'";
         return tokens.contains(String.valueOf(ch));
     }
@@ -181,15 +172,8 @@ public class CodeTemplate {
         return line;
     }
 
-    static private void println(Object... what) {
-        for (Object s : what) {
-            System.out.println(s.toString());
-        }
-    }
-
     static class CaretPosition {
         int currentOffset, startOffset;
-        boolean isStopPosition; // TODO: gotta work this idea
 
         CaretPosition(int currentOffset) {
             this.currentOffset = currentOffset;
@@ -202,7 +186,12 @@ public class CodeTemplate {
 
         void reset() {
             currentOffset = startOffset;
-            isStopPosition = false;
+        }
+    }
+
+    static private void println(Object... what) {
+        for (Object s : what) {
+            System.out.println(s.toString());
         }
     }
 }

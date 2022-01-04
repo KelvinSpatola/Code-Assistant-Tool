@@ -1,7 +1,5 @@
 package code_assistant.util;
 
-import static code_assistant.util.Constants.TOOL_FOLDER;
-
 import java.io.File;
 
 import processing.app.Base;

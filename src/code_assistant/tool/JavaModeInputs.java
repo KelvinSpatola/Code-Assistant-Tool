@@ -38,7 +38,7 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
 
     public JavaModeInputs(Editor editor) {
         this.editor = editor;
-        EditorUtil.init(editor); 
+        EditorUtil.init(editor);
 
         actions.put("ENTER", HANDLE_ENTER);
         actions.put("CA+RIGHT", EXPAND_SELECTION);
@@ -83,7 +83,7 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
             String result = EditorUtil.addSpaces(indent);
 
             // if the user chooses to disable the bracket closing feature in the
-            // Preferences.txt file, we should then insert a closing brace here. 
+            // Preferences.txt file, we should then insert a closing brace here.
             // Otherwise this is handled by the BracketCloser class.
             if (!Preferences.getBoolean("code_assistant.bracket_closing.enabled"))
                 result += CLOSE_BRACE;
@@ -333,7 +333,8 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
                 editor.setSelection(s.getStart(), s.getEnd());
                 return;
 
-            } else if (start == s.getStart() && end == s.getEnd()) {
+            }
+            if (start == s.getStart() && end == s.getEnd()) {
                 startLine--;
                 endLine++;
             }

@@ -221,7 +221,7 @@ public final class EditorUtil {
                 if (stack.isEmpty())
                     return false;
 
-                var top = stack.pop();
+                char top = stack.pop();
                 if (leftBrackets.indexOf(top) != rightBrackets.indexOf(ch))
                     return false;
             }

@@ -1,23 +1,15 @@
 package code_assistant.completion;
 
 import static code_assistant.util.Constants.DATA_FOLDER;
+import static code_assistant.util.Constants.NL;
 import static code_assistant.util.Constants.TOOL_FOLDER;
 import static code_assistant.util.Constants.TOOL_JAR;
-import static code_assistant.util.Constants.NL;
 
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URL;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.ZipEntry;
@@ -34,7 +26,6 @@ import processing.core.PApplet;
 import processing.data.JSONArray;
 import processing.data.JSONObject;
 
-
 public class CodeTemplatesManager implements KeyHandler, CaretListener {
     static private Map<String, CodeTemplate> templates = new HashMap<>();
     static private boolean isReadingKeyboardInput;
@@ -42,7 +33,7 @@ public class CodeTemplatesManager implements KeyHandler, CaretListener {
     private Editor editor;
 
     static {
-        templates.put("sout", new CodeTemplate("System.out.println($);"));
+        templates.put("sout", new CodeTemplate("System.out.println($);$"));
         templates.put("if", new CodeTemplate("if ($) {\n    $\n}"));
         templates.put("ifelse", new CodeTemplate("if ($) {\n    $\n} else {\n    \n}"));
         templates.put("switch", new CodeTemplate("switch ($) {\ncase $:\n    $\n    break;\n}"));
@@ -50,7 +41,7 @@ public class CodeTemplatesManager implements KeyHandler, CaretListener {
         templates.put("while", new CodeTemplate("while ($) {\n    $\n}"));
         templates.put("do", new CodeTemplate("do {\n    $\n} while ($);"));
         templates.put("try", new CodeTemplate("try {\n    $\n} catch (Exception e) {\n    e.printStackTrace();\n}"));
-    } 
+    }
 
     // CONSTRUCTOR
     public CodeTemplatesManager(Editor editor) {
@@ -84,7 +75,7 @@ public class CodeTemplatesManager implements KeyHandler, CaretListener {
                 editor.setSelection(editor.getLineStartOffset(line), editor.getCaretOffset());
                 editor.setSelectedText(currentTemplate.getCode(indent));
 
-                int caret = currentTemplate.getStartCaretPosition(editor.getCaretOffset());
+                int caret = currentTemplate.getStartPosition(editor.getCaretOffset());
                 editor.setSelection(caret, caret);
             }
 
@@ -92,21 +83,16 @@ public class CodeTemplatesManager implements KeyHandler, CaretListener {
             if (BracketCloser.isSkipped())
                 return false;
 
-            if (currentTemplate.isLastCandidate()) {
-                currentTemplate = null;
-                System.out.println("DONE");
-                return false;
-            }
+            if (currentTemplate.isLastPosition())
+                return isReadingKeyboardInput = false;
 
             if (keyCode == KeyEvent.VK_ENTER || keyCode == KeyEvent.VK_TAB) {
-                int caret = currentTemplate.getNextPosition();
+                int caret = currentTemplate.nextPosition();
                 editor.setSelection(caret, caret);
-                System.out.println("NEXT");
 
             } else {
                 currentTemplate.readInput(e);
             }
-
         } else {
             currentTemplate = null;
         }
@@ -153,7 +139,7 @@ public class CodeTemplatesManager implements KeyHandler, CaretListener {
         }
         return sb.reverse().toString();
     }
-    
+
     private File createNewTemplatesFile() {
         final String FILE_TO_EXTRACT = "data/templates.json";
 

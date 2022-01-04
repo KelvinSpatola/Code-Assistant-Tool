@@ -23,7 +23,7 @@ public class DefaultInputs implements ActionTrigger {
     protected Map<String, Action> actions = new HashMap<>();
     protected Editor editor;
 
-    public DefaultInputs(Editor editor) { 
+    public DefaultInputs(Editor editor) {
         this.editor = editor;
 
         actions.put("AS+UP", DUPLICATE_UP);

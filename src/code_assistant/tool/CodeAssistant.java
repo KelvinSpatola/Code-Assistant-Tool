@@ -60,15 +60,15 @@ public class CodeAssistant implements Tool, ActionTrigger {
 
     @Override
     public void run() {
-        Editor editor = base.getActiveEditor(); 
-        
+        Editor editor = base.getActiveEditor();
+
         if (!isRunning) { // TODO: consertar essa verificacao pois funciona somente para um editor.
             printHello();
 
             final DefaultInputs defaultInputs = new DefaultInputs(editor);
             final JavaModeInputs javaModeInputs = new JavaModeInputs(editor);
             final InputManager inputHandler = new InputManager(editor, defaultInputs, javaModeInputs, this);
-            
+
             inputHandler.addKeyHandler(javaModeInputs);
             if (Preferences.getBoolean("code_assistant.bracket_closing.enabled")) {
                 inputHandler.addKeyHandler(new BracketCloser(editor));
@@ -77,10 +77,10 @@ public class CodeAssistant implements Tool, ActionTrigger {
                 inputHandler.addKeyHandler(new CodeTemplatesManager(editor));
             }
             editor.getTextArea().setInputHandler(inputHandler);
-            
+
             editor.statusNotice(TOOL_NAME + " is running.");
             isRunning = true;
-            
+
         } else {
             editor.statusMessage(TOOL_NAME + " is already active.", EditorStatus.WARNING);
             editor.getConsole().clear();
@@ -99,7 +99,7 @@ public class CodeAssistant implements Tool, ActionTrigger {
         });
         return actions;
     }
-    
+
     public void printHello() {
         System.out.println("====================================================");
         System.out.println("   Code Assistant 0.0.1 created by Kelvin Spatola   ");

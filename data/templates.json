@@ -4,7 +4,7 @@
 			"key": "setup",
 			"code": [
 				"void setup() {",
-				"    size(#, #);",
+				"    size($, $);$",
 				"}"
 			]
 		}, 
@@ -12,15 +12,15 @@
 			"key": "draw",
 			"code": [
 				"void draw() {",
-				"    background(#);",
+				"    background($);$",
 				"}"
 			]
 		},
 		{
-			"key": "mpress",
+			"key": "mpres",
 			"code": [
 				"void mousePressed() {",
-				"    #",
+				"    $",
 				"}"
 			]
 		},
@@ -28,50 +28,56 @@
 			"key": "mclick",
 			"code": [
 				"void mouseClicked() {",
-				"    #",
+				"    $",
 				"}"
 			]
 		},
 		{
-			"key": "mrelea",
+			"key": "mrele",
 			"code": [
 				"void mouseReleased() {",
-				"    #",
+				"    $",
 				"}"
 			]
 		},
 		{
-			"key": "kpress",
+			"key": "kpres",
 			"code": [
 				"void keyPressed() {",
-				"    #",
+				"    $",
 				"}"
 			]
 		},
 		{
-			"key": "ktyped",
+			"key": "ktype",
 			"code": [
 				"void keyTyped() {",
-				"    #",
+				"    $",
 				"}"
 			]
 		},
 		{
-			"key": "krelea",
+			"key": "krele",
 			"code": [
 				"void keyReleased() {",
-				"    #",
+				"    $",
 				"}"
 			]
 		},
 		{
-			"key": "kpress2",
+			"key": "pln",
+			"code": [
+				"println($);$"
+			]
+		},
+		{
+			"key": "kpres2",
 			"code": [
 				"void keyPressed(KeyEvent e) {",
-				"    int ch = e.getKey();",
+				"    int $ = e.getKey();",
 				"    ",
-				"    if (ch == '#') {",
-				"        background(#);",
+				"    if ($ == '$') {",
+				"        background($);$",
 				"    }",
 				"}"
 			]
