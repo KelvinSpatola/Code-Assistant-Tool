@@ -13,7 +13,7 @@ import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 
-import code_assistant.completion.CodeTemplatesManager;
+import code_assistant.completion.TemplatesManager;
 import code_assistant.util.EditorUtil;
 import code_assistant.util.Selection;
 import processing.app.Preferences;
@@ -96,7 +96,7 @@ public class DefaultInputs implements ActionTrigger {
     private final Action INDENT_TEXT = new AbstractAction() {
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (CodeTemplatesManager.isReadingKeyboardInput())
+            if (TemplatesManager.isReadingKeyboardInput())
                 return;
 
             handleTabulation(false);
@@ -106,7 +106,7 @@ public class DefaultInputs implements ActionTrigger {
     private final Action OUTDENT_TEXT = new AbstractAction() {
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (CodeTemplatesManager.isReadingKeyboardInput())
+            if (TemplatesManager.isReadingKeyboardInput())
                 return;
 
             handleTabulation(true);

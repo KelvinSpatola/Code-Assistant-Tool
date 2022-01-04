@@ -32,7 +32,7 @@ import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 
-import code_assistant.completion.CodeTemplatesManager;
+import code_assistant.completion.TemplatesManager;
 import code_assistant.util.Constants;
 import code_assistant.util.ToolPreferences;
 import processing.app.Base;
@@ -74,7 +74,7 @@ public class CodeAssistant implements Tool, ActionTrigger {
                 inputHandler.addKeyHandler(new BracketCloser(editor));
             }
             if (Preferences.getBoolean("code_assistant.templates.enabled")) {
-                inputHandler.addKeyHandler(new CodeTemplatesManager(editor));
+                inputHandler.addKeyHandler(new TemplatesManager(editor));
             }
             editor.getTextArea().setInputHandler(inputHandler);
 

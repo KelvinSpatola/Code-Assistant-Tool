@@ -17,7 +17,7 @@ import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 
-import code_assistant.completion.CodeTemplatesManager;
+import code_assistant.completion.TemplatesManager;
 import code_assistant.util.EditorUtil;
 import code_assistant.util.Selection;
 import processing.app.Language;
@@ -121,7 +121,7 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
     private final Action HANDLE_ENTER = new AbstractAction() {
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (CodeTemplatesManager.isReadingKeyboardInput())
+            if (TemplatesManager.isReadingKeyboardInput())
                 return;
 
             handleEnter();
@@ -272,7 +272,7 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
         editor.startCompoundEdit();
 
         // erase any selection content
-        if (editor.isSelectionActive()) {
+        if (editor.isSelectionActive()) { // TOOD: ha um bug aqui quando temos muito texto selecionado 
             offset = editor.getSelectionStart() + 1;
             editor.setSelectedText("");
             editor.setSelectedText(NL);

@@ -26,14 +26,13 @@ import processing.core.PApplet;
 import processing.data.JSONArray;
 import processing.data.JSONObject;
 
-public class CodeTemplatesManager implements KeyHandler, CaretListener {
+public class TemplatesManager implements KeyHandler, CaretListener {
     static private Map<String, CodeTemplate> templates = new HashMap<>();
     static private boolean isReadingKeyboardInput;
     private CodeTemplate currentTemplate;
     private Editor editor;
 
     static {
-        templates.put("sout", new CodeTemplate("System.out.println($);$"));
         templates.put("if", new CodeTemplate("if ($) {\n    $\n}"));
         templates.put("ifelse", new CodeTemplate("if ($) {\n    $\n} else {\n    \n}"));
         templates.put("switch", new CodeTemplate("switch ($) {\ncase $:\n    $\n    break;\n}"));
@@ -41,10 +40,11 @@ public class CodeTemplatesManager implements KeyHandler, CaretListener {
         templates.put("while", new CodeTemplate("while ($) {\n    $\n}"));
         templates.put("do", new CodeTemplate("do {\n    $\n} while ($);"));
         templates.put("try", new CodeTemplate("try {\n    $\n} catch (Exception e) {\n    e.printStackTrace();\n}"));
+        templates.put("sout", new CodeTemplate("System.out.println($);$"));
     }
 
     // CONSTRUCTOR
-    public CodeTemplatesManager(Editor editor) {
+    public TemplatesManager(Editor editor) {
         this.editor = editor;
         EditorUtil.init(editor);
 
