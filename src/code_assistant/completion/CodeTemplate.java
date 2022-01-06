@@ -25,7 +25,7 @@ public class CodeTemplate {
 
     static {
         placeholders.add("$"); // end caret
-        //placeholders.add("#"); // paramters
+        // placeholders.add("#"); // paramters
     }
 
     // CONSTRUCTOR

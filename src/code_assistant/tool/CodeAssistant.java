@@ -33,6 +33,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 
 import code_assistant.completion.TemplatesManager;
+import code_assistant.gui.MenuManager;
 import code_assistant.util.Constants;
 import code_assistant.util.ToolPreferences;
 import processing.app.Base;
@@ -48,11 +49,6 @@ public class CodeAssistant implements Tool, ActionTrigger {
     private boolean isRunning = false;
 
     @Override
-    public String getMenuTitle() {
-        return TOOL_NAME;
-    }
-
-    @Override
     public void init(Base base) {
         this.base = base;
         ToolPreferences.init();
@@ -63,11 +59,14 @@ public class CodeAssistant implements Tool, ActionTrigger {
         Editor editor = base.getActiveEditor();
 
         if (!isRunning) { // TODO: consertar essa verificacao pois funciona somente para um editor.
-            printHello();
+            printHelloMessage();
 
             final DefaultInputs defaultInputs = new DefaultInputs(editor);
             final JavaModeInputs javaModeInputs = new JavaModeInputs(editor);
             final InputManager inputHandler = new InputManager(editor, defaultInputs, javaModeInputs, this);
+
+            final MenuManager menuManager = new MenuManager(defaultInputs, javaModeInputs, this);
+            menuManager.addToolsPopupMenu(editor);
 
             inputHandler.addKeyHandler(javaModeInputs);
             if (Preferences.getBoolean("code_assistant.bracket_closing.enabled")) {
@@ -83,7 +82,7 @@ public class CodeAssistant implements Tool, ActionTrigger {
 
         } else {
             editor.statusMessage(TOOL_NAME + " is already active.", EditorStatus.WARNING);
-            editor.getConsole().clear();
+//            editor.getConsole().clear();
         }
     }
 
@@ -100,9 +99,15 @@ public class CodeAssistant implements Tool, ActionTrigger {
         return actions;
     }
 
-    public void printHello() {
-        System.out.println("====================================================");
-        System.out.println("   Code Assistant 0.0.1 created by Kelvin Spatola   ");
-        System.out.println("====================================================");
+    @Override
+    public String getMenuTitle() {
+        return TOOL_NAME;
+    }
+
+    private void printHelloMessage() {
+        System.out.println(" __    ___   ___   ____       __    __   __   _   __  _____   __    _     _____ ");
+        System.out.println("/ /`  / / \\ | | \\ | |_       / /\\  ( (` ( (` | | ( (`  | |   / /\\  | |\\ |  | |  ");
+        System.out.println("\\_\\_, \\_\\_/ |_|_/ |_|__     /_/--\\ _)_) _)_) |_| _)_)  |_|  /_/--\\ |_| \\|  |_|  ");
+        System.out.println("0.0.1 created by Kelvin Spatola");
     }
 }

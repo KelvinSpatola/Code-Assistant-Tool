@@ -272,7 +272,7 @@ public class JavaModeInputs implements ActionTrigger, KeyHandler {
         editor.startCompoundEdit();
 
         // erase any selection content
-        if (editor.isSelectionActive()) { // TOOD: ha um bug aqui quando temos muito texto selecionado 
+        if (editor.isSelectionActive()) { // TOOD: ha um bug aqui quando temos muito texto selecionado
             offset = editor.getSelectionStart() + 1;
             editor.setSelectedText("");
             editor.setSelectedText(NL);
