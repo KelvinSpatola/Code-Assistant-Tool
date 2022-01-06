@@ -26,17 +26,17 @@ public class DefaultInputs implements ActionTrigger {
     public DefaultInputs(Editor editor) {
         this.editor = editor;
 
-        actions.put("AS+UP", DUPLICATE_UP);
-        actions.put("AS+DOWN", DUPLICATE_DOWN);
-        actions.put("A+UP", MOVE_UP);
-        actions.put("A+DOWN", MOVE_DOWN);
-        actions.put("TAB", INDENT_TEXT);
-        actions.put("S+TAB", OUTDENT_TEXT);
-        actions.put("A+ENTER", INSERT_NEW_LINE_BELLOW);
-        actions.put("C+E", DELETE_LINE);
-        actions.put("CS+E", DELETE_LINE_CONTENT);
-        actions.put("CS+U", TO_UPPER_CASE);
-        actions.put("CS+L", TO_LOWER_CASE);
+        actions.put("CA+UP", DUPLICATE_UP); //
+        actions.put("CA+DOWN", DUPLICATE_DOWN); //
+        actions.put("A+UP", MOVE_UP); //
+        actions.put("A+DOWN", MOVE_DOWN); //
+        actions.put("TAB", INDENT_TEXT); //
+        actions.put("S+TAB", OUTDENT_TEXT); //
+        actions.put("A+ENTER", INSERT_NEW_LINE_BELLOW); //
+        actions.put("C+E", DELETE_LINE); //
+        actions.put("CS+E", DELETE_LINE_CONTENT); //
+        actions.put("CS+U", TO_UPPER_CASE); //
+        actions.put("CS+L", TO_LOWER_CASE); //
     }
 
     @Override

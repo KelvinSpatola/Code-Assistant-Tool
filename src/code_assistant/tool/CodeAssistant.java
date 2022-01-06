@@ -43,7 +43,7 @@ import processing.app.tools.Tool;
 import processing.app.ui.Editor;
 import processing.app.ui.EditorStatus;
 
-public class CodeAssistant implements Tool, ActionTrigger {
+public class CodeAssistant implements Tool {
     static public final String TOOL_NAME = "Code Assistant";
     private Base base;
     private boolean isRunning = false;
@@ -63,12 +63,14 @@ public class CodeAssistant implements Tool, ActionTrigger {
 
             final DefaultInputs defaultInputs = new DefaultInputs(editor);
             final JavaModeInputs javaModeInputs = new JavaModeInputs(editor);
-            final InputManager inputHandler = new InputManager(editor, defaultInputs, javaModeInputs, this);
-
-            final MenuManager menuManager = new MenuManager(defaultInputs, javaModeInputs, this);
+            
+            final MenuManager menuManager = new MenuManager(defaultInputs, javaModeInputs);
+            menuManager.addToolsMenuBar(editor);
             menuManager.addToolsPopupMenu(editor);
 
+            final InputManager inputHandler = new InputManager(editor, defaultInputs, javaModeInputs);
             inputHandler.addKeyHandler(javaModeInputs);
+            
             if (Preferences.getBoolean("code_assistant.bracket_closing.enabled")) {
                 inputHandler.addKeyHandler(new BracketCloser(editor));
             }
@@ -84,19 +86,6 @@ public class CodeAssistant implements Tool, ActionTrigger {
             editor.statusMessage(TOOL_NAME + " is already active.", EditorStatus.WARNING);
 //            editor.getConsole().clear();
         }
-    }
-
-    @Override
-    public Map<String, Action> getActions() {
-        Map<String, Action> actions = new HashMap<>();
-
-        actions.put("F9", new AbstractAction("visit-website") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Platform.openURL(Constants.WEBSITE);
-            }
-        });
-        return actions;
     }
 
     @Override

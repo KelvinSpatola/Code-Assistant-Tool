@@ -1,29 +1,31 @@
 package code_assistant.gui;
 
 import java.awt.Font;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+import javax.swing.KeyStroke;
 
 import code_assistant.tool.ActionTrigger;
+import code_assistant.util.Constants;
+import processing.app.Platform;
 import processing.app.syntax.DefaultInputHandler;
 import processing.app.ui.Editor;
+import processing.app.ui.Toolkit;
 
 public class MenuManager {
     protected Map<String, Action> actions;
-    protected Editor editor;
 
-    
     public MenuManager(ActionTrigger... triggers) {
-        this.editor = editor;
-
         actions = new HashMap<>();
 
         for (ActionTrigger trigger : triggers) {
@@ -31,51 +33,108 @@ public class MenuManager {
         }
     }
 
-    public void addToolsPopupMenu(Editor editor) {
-        JPopupMenu popup = editor.getTextArea().getRightClickPopup();
-        JMenu submenu = new JMenu("Code Assistant");    
-        JMenuItem formatItem, commentItem, upperCaseItem, loweCaseItem, staticItem;
-        
-        submenu.setFont(new Font("Segoe UI", Font.BOLD, 12));
+    public void addToolsMenuBar(Editor editor) {
+        JMenuBar menubar = editor.getJMenuBar();
+        JMenu menu = new JMenu("Code Assistant");
 
-        popup.addSeparator(); // ---------------------------------------------
-        popup.add(submenu);
+        // DefaultInputs.DUPLICATE_UP
+        JMenuItem duplicateUpItem = createItem("Duplicate lines up", "CA+UP", true);
+        menu.add(duplicateUpItem);
 
-        // JavaModeInputs.FORMAT_SELECTED_TEXT
-        formatItem = new JMenuItem("Format selected text");
-        formatItem.addActionListener(i -> actions.get("C+T").actionPerformed(null));
-        formatItem.setAccelerator(DefaultInputHandler.parseKeyStroke("C+T"));
-        submenu.add(formatItem);
+        // DefaultInputs.DUPLICATE_DOWN
+        JMenuItem duplicateDownItem = createItem("Duplicate lines down", "CA+DOWN", true);
+        menu.add(duplicateDownItem);
 
-        // JavaModeInputs.EXPAND_SELECTION
-        staticItem = new JMenuItem("Expand Selection");
-        staticItem.addActionListener(i -> actions.get("CA+RIGHT").actionPerformed(null));
-        staticItem.setAccelerator(DefaultInputHandler.parseKeyStroke("CA+RIGHT"));
-        submenu.add(staticItem);
+        // DefaultInputs.MOVE_UP
+        JMenuItem moveUpItem = createItem("Move lines up", "A+UP", true);
+        menu.add(moveUpItem);
+
+        // DefaultInputs.MOVE_DOWN
+        JMenuItem moveDownItem = createItem("Move lines down", "A+DOWN", true);
+        menu.add(moveDownItem);
+
+        menu.addSeparator(); // ---------------------------------------------
+
+        // DefaultInputs.DELETE_LINE
+        JMenuItem deleteLineItem = createItem("Delete line", "C+E", true);
+        menu.add(deleteLineItem);
+
+        // DefaultInputs.DELETE_LINE_CONTENT
+        JMenuItem deleteLineContentItem = createItem("Delete line content", "CS+E", true);
+        menu.add(deleteLineContentItem);
+
+        menu.addSeparator(); // ---------------------------------------------
 
         // JavaModeInputs.TOGGLE_BLOCK_COMMENT
-        commentItem = new JMenuItem("Toggle block comment");
-        commentItem.addActionListener(i -> actions.get("C+7").actionPerformed(null));
-        commentItem.setAccelerator(DefaultInputHandler.parseKeyStroke("C+7"));
+        JMenuItem commentItem = createItem("Toggle block comment", "C+7", true);
+        menu.add(commentItem);
+
+        // JavaModeInputs.FORMAT_SELECTED_TEXT
+        JMenuItem formatItem = createItem("Format selected text", "C+T", true);
+        menu.add(formatItem);
+
+        // DefaultInputs.TO_UPPER_CASE
+        JMenuItem upperCaseItem = createItem("To upper case", "CS+U", true);
+        menu.add(upperCaseItem);
+
+        // DefaultInputs.TO_LOWER_CASE
+        JMenuItem loweCaseItem = createItem("To lower case", "CS+L", true);
+        menu.add(loweCaseItem);
+
+        // JavaModeInputs.EXPAND_SELECTION
+        JMenuItem expandIntem = createItem("Expand Selection", "CA+RIGHT", true);
+        menu.add(expandIntem);
+
+        menu.addSeparator(); // ---------------------------------------------
+
+        JMenuItem websiteItem = new JMenuItem("Visit GitHub page");
+        websiteItem.addActionListener(i -> Platform.openURL(Constants.WEBSITE));
+        menu.add(websiteItem);
+
+        menu.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent arg0) {
+                formatItem.setEnabled(editor.isSelectionActive());
+                commentItem.setEnabled(editor.isSelectionActive());
+                upperCaseItem.setEnabled(editor.isSelectionActive());
+                loweCaseItem.setEnabled(editor.isSelectionActive());
+            }
+        });
+
+        /*
+         * This menu should be on the left of the Help menu, as the Processing
+         * developers want. If this were a Mode, rather than a Tool, it would be
+         * restricted to complying with this standard. So it's better to respect that
+         * even taking into account that the developers left no way to restrict tools
+         * from having a distinct menu. Anyway, this is good as it allows users to use
+         * tools in different modes. If this project were rather a Mode, it would be
+         * impossible to enjoy it in different modes (e.g. Python mode)
+         */
+        menubar.add(menu, menubar.getMenuCount() - 1);
+        menubar.updateUI();
+    }
+
+    public void addToolsPopupMenu(Editor editor) {
+        JPopupMenu popup = editor.getTextArea().getRightClickPopup();
+        JMenu submenu = new JMenu("Code Assistant");
+
+        popup.addSeparator(); // ---------------------------------------------
+
+        // JavaModeInputs.FORMAT_SELECTED_TEXT
+        JMenuItem formatItem = createItem("Format selected text", "C+T", false);
+        submenu.add(formatItem);
+
+        // JavaModeInputs.TOGGLE_BLOCK_COMMENT
+        JMenuItem commentItem = createItem("Toggle block comment", "C+7", false);
         submenu.add(commentItem);
 
         // DefaultInputs.TO_UPPER_CASE
-        upperCaseItem = new JMenuItem("To upper case");
-        upperCaseItem.addActionListener(i -> actions.get("CS+U").actionPerformed(null));
-        upperCaseItem.setAccelerator(DefaultInputHandler.parseKeyStroke("CS+U"));
+        JMenuItem upperCaseItem = createItem("To upper case", "CS+U", false);
         submenu.add(upperCaseItem);
 
         // DefaultInputs.TO_LOWER_CASE
-        loweCaseItem = new JMenuItem("To lower case");
-        loweCaseItem.addActionListener(i -> actions.get("CS+L").actionPerformed(null));
-        loweCaseItem.setAccelerator(DefaultInputHandler.parseKeyStroke("CS+L"));
+        JMenuItem loweCaseItem = createItem("To lower case", "CS+L", false);
         submenu.add(loweCaseItem);
-
-        // CodeAssistant -> visit-website
-        staticItem = new JMenuItem("Visit GitHub page");
-        staticItem.addActionListener(i -> actions.get("F9").actionPerformed(null));
-        staticItem.setAccelerator(DefaultInputHandler.parseKeyStroke("F9"));
-        submenu.add(staticItem);
 
         submenu.addMouseListener(new MouseAdapter() {
             @Override
@@ -86,19 +145,28 @@ public class MenuManager {
                 loweCaseItem.setEnabled(editor.isSelectionActive());
             }
         });
+
+        submenu.setFont(popup.getFont().deriveFont(Font.BOLD));
+        popup.add(submenu);
     }
 
-    public void addToolsMenuBar(JMenuBar menubar) {
-//  JMenu codeAssistantMenu = new JMenu("Code Assistant");
-//
-//  JMenuItem item = Toolkit.newJMenuItem("Print Message", 'P');
-//  item.addActionListener(e -> printMsg());
-//  codeAssistantMenu.add(item);
-//
-//  JMenuBar menubar = new JMenuBar();
-//  menubar.add(codeAssistantMenu);
-//  editor.setJMenuBar(menubar);
-//  editor.getJMenuBar().add(codeAssistantMenu);
+    private JMenuItem createItem(String title, String actionKey, boolean enableAccelerator) {
+        JMenuItem item = new MenuItem(title);
+        item.addActionListener(i -> actions.get(actionKey).actionPerformed(null));
+        if (enableAccelerator)
+            item.setAccelerator(DefaultInputHandler.parseKeyStroke(actionKey));
+        return item;
+    }
 
+    private class MenuItem extends JMenuItem {
+        MenuItem(String title) {
+            super(title);
+        }
+
+        @Override
+        public void setAccelerator(KeyStroke keyStroke) {
+            super.setAccelerator(keyStroke);
+            getInputMap(WHEN_IN_FOCUSED_WINDOW).put(keyStroke, "none");
+        }
     }
 }
