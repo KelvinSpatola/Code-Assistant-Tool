@@ -25,19 +25,10 @@
 
 package code_assistant.tool;
 
-import java.awt.event.ActionEvent;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-
 import code_assistant.completion.TemplatesManager;
 import code_assistant.gui.MenuManager;
-import code_assistant.util.Constants;
 import code_assistant.util.ToolPreferences;
 import processing.app.Base;
-import processing.app.Platform;
 import processing.app.Preferences;
 import processing.app.tools.Tool;
 import processing.app.ui.Editor;
@@ -63,14 +54,14 @@ public class CodeAssistant implements Tool {
 
             final DefaultInputs defaultInputs = new DefaultInputs(editor);
             final JavaModeInputs javaModeInputs = new JavaModeInputs(editor);
-            
+
             final MenuManager menuManager = new MenuManager(defaultInputs, javaModeInputs);
             menuManager.addToolsMenuBar(editor);
             menuManager.addToolsPopupMenu(editor);
 
             final InputManager inputHandler = new InputManager(editor, defaultInputs, javaModeInputs);
             inputHandler.addKeyHandler(javaModeInputs);
-            
+
             if (Preferences.getBoolean("code_assistant.bracket_closing.enabled")) {
                 inputHandler.addKeyHandler(new BracketCloser(editor));
             }

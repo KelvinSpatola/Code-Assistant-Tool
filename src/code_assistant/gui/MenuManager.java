@@ -1,13 +1,11 @@
 package code_assistant.gui;
 
 import java.awt.Font;
-import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -20,7 +18,6 @@ import code_assistant.util.Constants;
 import processing.app.Platform;
 import processing.app.syntax.DefaultInputHandler;
 import processing.app.ui.Editor;
-import processing.app.ui.Toolkit;
 
 public class MenuManager {
     protected Map<String, Action> actions;
@@ -62,6 +59,10 @@ public class MenuManager {
         // DefaultInputs.DELETE_LINE_CONTENT
         JMenuItem deleteLineContentItem = createItem("Delete line content", "CS+E", true);
         menu.add(deleteLineContentItem);
+        
+        // DefaultInputs.INSERT_NEW_LINE_BELLOW
+        JMenuItem insertNewLineItem = createItem("Insert line bellow", "A+ENTER", true);
+        menu.add(insertNewLineItem);
 
         menu.addSeparator(); // ---------------------------------------------
 
@@ -93,11 +94,12 @@ public class MenuManager {
 
         menu.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseEntered(MouseEvent arg0) {
-                formatItem.setEnabled(editor.isSelectionActive());
-                commentItem.setEnabled(editor.isSelectionActive());
-                upperCaseItem.setEnabled(editor.isSelectionActive());
-                loweCaseItem.setEnabled(editor.isSelectionActive());
+            public void mouseEntered(MouseEvent e) {
+                boolean isSelectionActive = editor.isSelectionActive();
+                formatItem.setEnabled(isSelectionActive);
+                commentItem.setEnabled(isSelectionActive);
+                upperCaseItem.setEnabled(isSelectionActive);
+                loweCaseItem.setEnabled(isSelectionActive);
             }
         });
 
@@ -138,11 +140,12 @@ public class MenuManager {
 
         submenu.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseEntered(MouseEvent arg0) {
-                formatItem.setEnabled(editor.isSelectionActive());
-                commentItem.setEnabled(editor.isSelectionActive());
-                upperCaseItem.setEnabled(editor.isSelectionActive());
-                loweCaseItem.setEnabled(editor.isSelectionActive());
+            public void mouseEntered(MouseEvent e) {
+                boolean isSelectionActive = editor.isSelectionActive();
+                formatItem.setEnabled(isSelectionActive);
+                commentItem.setEnabled(isSelectionActive);
+                upperCaseItem.setEnabled(isSelectionActive);
+                loweCaseItem.setEnabled(isSelectionActive);
             }
         });
 
@@ -150,7 +153,7 @@ public class MenuManager {
         popup.add(submenu);
     }
 
-    private JMenuItem createItem(String title, String actionKey, boolean enableAccelerator) {
+    protected JMenuItem createItem(String title, String actionKey, boolean enableAccelerator) {
         JMenuItem item = new MenuItem(title);
         item.addActionListener(i -> actions.get(actionKey).actionPerformed(null));
         if (enableAccelerator)
@@ -158,7 +161,7 @@ public class MenuManager {
         return item;
     }
 
-    private class MenuItem extends JMenuItem {
+    class MenuItem extends JMenuItem {
         MenuItem(String title) {
             super(title);
         }
